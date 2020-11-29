@@ -5,9 +5,9 @@ import(
 )
 
 type HistoricalTransform struct {
-  Seq           int
-  Angle         int
-  AngleDelta    int
+  Seq           uint16
+  Angle         int32
+  AngleDelta    int32
   Position      fixpoint.Vec3Q16
   Velocity      fixpoint.Vec3Q16
   VelocityDelta fixpoint.Vec3Q16
