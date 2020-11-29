@@ -6,11 +6,9 @@ import(
 )
 
 type ControlledBody struct {
-  inputSeq          int
-  angle             int
-  nextAngle         int
+  inputSeq          uint16
 
-  rotationSpeed     int
+  rotationSpeed     int32
   thrust            fixpoint.Q16
   sqrMaxSpeed       fixpoint.Q16
   maxSpeed          fixpoint.Q16
@@ -24,7 +22,7 @@ type ControlledBody struct {
 // instantiation
 ///////////////////////
 
-func NewControlledBody(r int, t, s fixpoint.Q16, sim *Simulation) (*ControlledBody) {
+func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*ControlledBody) {
   var cbod ControlledBody
   cbod.stateBuffer = NewStateBuffer(256)
   cbod.rotationSpeed = r
@@ -44,7 +42,7 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.body.Vel = ht.Velocity
 }
 
-func (cb *ControlledBody) InputToState(seq int, moveshoot byte) {
+func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
   if seq < cb.inputSeq {
     return
   } else {
@@ -99,8 +97,8 @@ func (cb *ControlledBody) InputToState(seq int, moveshoot byte) {
   cb.stateBuffer.Clean()
 }
 
-func (cb *ControlledBody) Advance(seq int) {
-  cb.body.Pos = cb.body.NextPos
+func (cb *ControlledBody) Advance(seq uint16) {
+  cb.body.Advance(seq)
 
   if cb.stateBuffer.GetCurrentSeq() <= (seq - 1) {
     ht := cb.stateBuffer.Advance()
@@ -133,7 +131,7 @@ func (cb *ControlledBody) Advance(seq int) {
     // }
 
     cb.body.NextPos = ht.Position
-    cb.nextAngle = ht.Angle
+    cb.body.NextAngle = ht.Angle
     cb.body.Vel = ht.Velocity
   }
 
@@ -142,8 +140,4 @@ func (cb *ControlledBody) Advance(seq int) {
 
 func (cb *ControlledBody) GetBody() *Body {
   return cb.body
-}
-
-func (cb *ControlledBody) GetNextAngle() int32 {
-  return int32(cb.nextAngle)
 }
