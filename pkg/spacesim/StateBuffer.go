@@ -31,16 +31,17 @@ func NewStateBuffer(size int) *StateBuffer {
 
 func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
   log.Printf("Initializing statebuffer @ %d", ht.Seq)
-  sb.currentSeq = ht.Seq
+  s := int(ht.Seq)
+  sb.currentSeq = s
   sb.current = ht
   sb.current.Seq = ht.Seq
 
   pt := ht
-  pt.Seq = ht.Seq - sb.size
+  pt.Seq = ht.Seq - uint16(sb.size)
   sb.past[sb.pastHead] = pt
 
   ft := ht
-  ft.Seq = ht.Seq + sb.size
+  ft.Seq = ht.Seq + uint16(sb.size)
   sb.future[sb.futureHead] = ft
 
   for i := 0; i < sb.size - 1; i++ {
@@ -53,17 +54,18 @@ func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
   }
 }
 
-func (sb *StateBuffer) Get(seq int) HistoricalTransform {
-  if seq == sb.currentSeq {
+func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
+  s := int(seq)
+  if s == sb.currentSeq {
     return sb.current
   }
 
-  if seq > sb.currentSeq {
-    return sb.future[sb.wrap(sb.futureHead + 1 - (seq - sb.currentSeq))]
+  if s > sb.currentSeq {
+    return sb.future[sb.wrap(sb.futureHead + 1 - (s - sb.currentSeq))]
   }
 
-  if seq < sb.currentSeq {
-    return sb.past[sb.wrap(sb.pastHead + 1 - (sb.currentSeq - seq))]
+  if s < sb.currentSeq {
+    return sb.past[sb.wrap(sb.pastHead + 1 - (sb.currentSeq - s))]
   }
 
   panic("bad historical transform")
@@ -89,32 +91,33 @@ func (sb *StateBuffer) Advance() HistoricalTransform {
 }
 
 func (sb *StateBuffer) Insert(ht HistoricalTransform, offset int) {
-  if ht.Seq == sb.currentSeq && ht != sb.current {
-    log.Printf("Cutting it close! %v", ht.Seq)
+  s := int(ht.Seq)
+  if s == sb.currentSeq && ht != sb.current {
+    log.Printf("Cutting it close! %v", s)
     sb.dirty(sb.currentSeq + offset)
     sb.current = ht
-  } else if ht.Seq < sb.currentSeq {
+  } else if s < sb.currentSeq {
     //log.Printf("Missed by %v", sb.currentSeq - ht.Seq)
-    idx := sb.wrap(sb.pastHead - (sb.currentSeq - ht.Seq))
+    idx := sb.wrap(sb.pastHead - (sb.currentSeq - s))
 
     if sb.past[idx].Seq != ht.Seq {
-      idx = sb.wrap(idx - (sb.past[idx].Seq - ht.Seq))
+      idx = sb.wrap(idx - int(sb.past[idx].Seq - ht.Seq))
     }
 
     if ht != sb.past[idx] {
-      sb.dirty(ht.Seq + offset)
+      sb.dirty(s + offset)
       sb.past[idx] = ht
     }
-  } else if ht.Seq > sb.currentSeq {
+  } else if s > sb.currentSeq {
     //log.Printf("hit! ahead by %v", ht.Seq - sb.currentSeq)
-    diff := ht.Seq - sb.currentSeq
+    diff := s - sb.currentSeq
     idx := sb.futureHead
     if diff > 1 {
       idx = sb.wrap(sb.futureHead + 1 - diff)
     }
 
     if ht != sb.future[idx] {
-      sb.dirty(ht.Seq + offset)
+      sb.dirty(s + offset)
       sb.future[idx] = ht
     }
   }
@@ -169,8 +172,8 @@ func (sb *StateBuffer) Clean() {
   sb.dirtySeq = -1
 }
 
-func (sb *StateBuffer) GetCurrentSeq() int {
-  return sb.currentSeq
+func (sb *StateBuffer) GetCurrentSeq() uint16 {
+  return uint16(sb.currentSeq)
 }
 
 func (sb *StateBuffer) dirty(seq int) {
