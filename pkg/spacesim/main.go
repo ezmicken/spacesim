@@ -12,40 +12,45 @@ func Initialize(ts int32) {
 }
 
 // export AddControlledBody
-func AddControlledBody() int32 {
-  return sim.AddControlledBody()
+func AddControlledBody(id uint16) {
+  sim.AddControlledBody(id)
 }
 
 // export RemoveControlledBody
-func RemoveControlledBody(id int32) {
+func RemoveControlledBody(id uint16) {
   sim.RemoveControlledBody(id)
 }
 
 // export PushInput
-func PushInput(id int32, tick uint16, moveshoot byte) {
+func PushInput(id uint16, tick uint16, moveshoot byte) {
   cb := sim.GetControlledBody(id)
   if cb != nil {
-    cb.InputToState(int(tick), moveshoot)
+    cb.InputToState(tick, moveshoot)
   }
 }
 
-// export Advance
-func Advance(seq uint16) {
+// export AdvanceSim
+func AdvanceSim(seq uint16) {
   sim.Advance(int(seq))
 }
 
+// export AdvanceBody
+func AdvanceBody(id, seq uint16) {
+  sim.AdvanceBody(id, seq)
+}
+
 // export GetNextAngle
-func GetNextAngle(id int32) int32 {
+func GetNextAngle(id uint16) int32 {
   cb := sim.GetControlledBody(id)
   if cb != nil {
-    return cb.GetNextAngle()
+    return cb.GetBody().NextAngle
   }
 
   return int32(0)
 }
 
 // export GetNextPosition
-func GetNextPosition(id int32) []float32 {
+func GetNextPosition(id uint16) []float32 {
   b := sim.GetBody(id)
   if b != nil {
     return []float32{b.NextPos.X.Float(), b.NextPos.Y.Float(), b.NextPos.Z.Float()}
