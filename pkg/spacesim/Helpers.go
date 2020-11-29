@@ -11,14 +11,14 @@ func WrapQ16(val, min, length fixpoint.Q16) fixpoint.Q16 {
   return val;
 }
 
-func WrapInt(val, min, length int) int {
+func WrapInt32(val, min, length int32) int32 {
   for val >= length { val -= length }
   for val < min { val += length }
   return val
 }
 
-func WrapAngle(val int) int {
-  return WrapInt(val, 0, 360)
+func WrapAngle(val int32) int32 {
+  return WrapInt32(val, 0, 360)
 }
 
 func WrapAngleQ16(val fixpoint.Q16) fixpoint.Q16 {
