@@ -1,27 +1,28 @@
 package main
 
 import(
+  "C"
   "github.com/ezmicken/fixpoint"
 )
 
 var sim *Simulation
 
-// export Initialize
-func Initialize(ts int32) {
-  sim = NewSimulation(fixpoint.Q16FromInt32(ts))
+//export Initialize
+func Initialize(ts , scale int32) {
+  sim = NewSimulation(fixpoint.Q16FromInt32(ts), fixpoint.Q16FromInt32(scale))
 }
 
-// export AddControlledBody
-func AddControlledBody(id uint16) {
-  sim.AddControlledBody(id)
+//export AddControlledBody
+func AddControlledBody(id uint16, x, y int32) {
+  sim.AddControlledBody(id, x, y)
 }
 
-// export RemoveControlledBody
+//export RemoveControlledBody
 func RemoveControlledBody(id uint16) {
   sim.RemoveControlledBody(id)
 }
 
-// export PushInput
+//export PushInput
 func PushInput(id uint16, tick uint16, moveshoot byte) {
   cb := sim.GetControlledBody(id)
   if cb != nil {
@@ -29,22 +30,22 @@ func PushInput(id uint16, tick uint16, moveshoot byte) {
   }
 }
 
-// export AdvanceSim
+//export AdvanceSim
 func AdvanceSim(seq uint16) {
   sim.Advance(int(seq))
 }
 
-// export AdvanceBody
+//export AdvanceBody
 func AdvanceBody(id, seq uint16) {
   sim.AdvanceBody(id, seq)
 }
 
-// export AdvanceControlledBody
+//export AdvanceControlledBody
 func AdvanceControlledBody(id, seq uint16) {
   sim.AdvanceControlledBody(id, seq)
 }
 
-// export GetNextAngle
+//export GetNextAngle
 func GetNextAngle(id uint16) int32 {
   cb := sim.GetControlledBody(id)
   if cb != nil {
@@ -54,14 +55,23 @@ func GetNextAngle(id uint16) int32 {
   return int32(0)
 }
 
-// export GetNextPosition
-func GetNextPosition(id uint16) []float32 {
+//export GetNextPositionX
+func GetNextPositionX(id uint16) float32 {
   b := sim.GetBody(id)
   if b != nil {
-    return []float32{b.NextPos.X.Float(), b.NextPos.Y.Float(), b.NextPos.Z.Float()}
+    return b.NextPos.X.Float()
   }
 
-  return []float32{0, 0, 0}
+  return 0
 }
 
+//export GetNextPositionY
+func GetNextPositionY(id uint16) float32 {
+  b := sim.GetBody(id)
+  if b != nil {
+    return b.NextPos.Y.Float()
+  }
+
+  return 0
+}
 func main(){}
