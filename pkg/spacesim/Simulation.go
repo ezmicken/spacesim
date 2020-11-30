@@ -9,6 +9,8 @@ type Simulation struct {
   controlledBodies    sync.Map
   bodiesById          sync.Map
   allBodies           []*Body
+  scale               fixpoint.Q16
+  halfScale           fixpoint.Q16
 
   seq                 uint16
   timestep            fixpoint.Q16
@@ -18,9 +20,11 @@ var rotationSpeed int32 = 9
 var thrust fixpoint.Q16 = fixpoint.Q16FromFloat(float32(0.36))
 var maxSpeed fixpoint.Q16 = fixpoint.Q16FromFloat(float32(20))
 
-func NewSimulation(ts fixpoint.Q16) *Simulation {
+func NewSimulation(ts, scale fixpoint.Q16) *Simulation {
   var s Simulation
   s.timestep = ts
+  s.scale = scale
+  s.halfScale = scale.Div(fixpoint.Q16FromInt32(2))
   s.seq = 0
   s.allBodies = []*Body{}
   return &s
@@ -44,11 +48,25 @@ func (s *Simulation) GetBody(id uint16) *Body {
   }
 }
 
-func (s *Simulation) AddControlledBody(id uint16) {
+func (s *Simulation) AddControlledBody(id uint16, x, y int32) {
   cb := NewControlledBody(rotationSpeed, thrust, maxSpeed, s)
   s.allBodies = append(s.allBodies, cb.GetBody())
   s.controlledBodies.Store(id, cb)
   s.bodiesById.Store(id, cb.GetBody())
+
+  xPos := fixpoint.Q16FromInt32(x).Mul(s.scale).Add(s.halfScale)
+  yPos := fixpoint.Q16FromInt32(y).Mul(s.scale).Add(s.halfScale)
+
+  var ht HistoricalTransform
+  ht.Seq = s.seq
+  ht.Angle = 0
+  ht.AngleDelta = 0
+  ht.Position = fixpoint.Vec3Q16{xPos, yPos, fixpoint.ZeroQ16}
+  ht.Velocity = fixpoint.ZeroVec3Q16
+  ht.VelocityDelta = fixpoint.ZeroVec3Q16
+
+  cb.Initialize(ht)
+
   return
 }
 
@@ -75,6 +93,7 @@ func (s *Simulation) AdvanceBody(id, seq uint16) {
 }
 
 func (s *Simulation) Advance(seq int) {
+  s.seq++
   // Update all bodies
   // flag dead bodies for removal
   // process live bodies
