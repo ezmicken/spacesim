@@ -39,6 +39,11 @@ func AdvanceBody(id, seq uint16) {
   sim.AdvanceBody(id, seq)
 }
 
+// export AdvanceControlledBody
+func AdvanceControlledBody(id, seq uint16) {
+  sim.AdvanceControlledBody(id, seq)
+}
+
 // export GetNextAngle
 func GetNextAngle(id uint16) int32 {
   cb := sim.GetControlledBody(id)
