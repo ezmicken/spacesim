@@ -93,7 +93,6 @@ func (sb *StateBuffer) Advance() HistoricalTransform {
 func (sb *StateBuffer) Insert(ht HistoricalTransform, offset int) {
   s := int(ht.Seq)
   if s == sb.currentSeq && ht != sb.current {
-    log.Printf("Cutting it close! %v", s)
     sb.dirty(sb.currentSeq + offset)
     sb.current = ht
   } else if s < sb.currentSeq {
