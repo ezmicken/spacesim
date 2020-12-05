@@ -1,2 +1,2 @@
 spacesim-osx:
-	env GOOS=darwin go build -o ./bin/spacesim.dylib -buildmode=c-shared ./pkg/spacesim
+	env GOOS=darwin go build -x -v -o ./bin/spacesim.dylib -buildmode=c-shared ./pkg/spacesim

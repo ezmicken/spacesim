@@ -1,7 +1,7 @@
 package main
 
 import(
-  "log"
+  //"log"
 )
 
 type StateBuffer struct {
@@ -30,7 +30,7 @@ func NewStateBuffer(size int) *StateBuffer {
 }
 
 func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
-  log.Printf("Initializing statebuffer @ %d", ht.Seq)
+  //log.Printf("Initializing statebuffer @ %d", ht.Seq)
   s := int(ht.Seq)
   sb.currentSeq = s
   sb.current = ht
