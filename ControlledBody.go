@@ -16,6 +16,9 @@ type ControlledBody struct {
   stateBuffer       *StateBuffer
   body              *Body
   sim               *Simulation
+
+  blockBitsTop      byte
+  blockBitsBot      byte
 }
 
 
@@ -40,6 +43,8 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.inputSeq = ht.Seq
   cb.body.Pos = ht.Position
   cb.body.Vel = ht.Velocity
+  cb.blockBitsTop = 0
+  cb.blockBitsBot = 0
 }
 
 func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
@@ -154,6 +159,11 @@ func (cb *ControlledBody) GetPositionX(seq uint16) fixpoint.Q16 {
 func (cb *ControlledBody) GetPositionY(seq uint16) fixpoint.Q16 {
   ht := cb.stateBuffer.Get(seq)
   return ht.Position.Y
+}
+
+func (cb *ControlledBody) SetBlockBits(top, bot byte) {
+  cb.blockBitsTop = top
+  cb.blockBitsBot = bot
 }
 
 func (cb *ControlledBody) GetBody() *Body {
