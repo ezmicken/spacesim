@@ -141,6 +141,21 @@ func (cb *ControlledBody) Advance(seq uint16) {
   return
 }
 
+func (cb *ControlledBody) GetAngle(seq uint16) int32 {
+  ht := cb.stateBuffer.Get(seq)
+  return ht.Angle
+}
+
+func (cb *ControlledBody) GetPositionX(seq uint16) fixpoint.Q16 {
+  ht := cb.stateBuffer.Get(seq)
+  return ht.Position.X
+}
+
+func (cb *ControlledBody) GetPositionY(seq uint16) fixpoint.Q16 {
+  ht := cb.stateBuffer.Get(seq)
+  return ht.Position.Y
+}
+
 func (cb *ControlledBody) GetBody() *Body {
   return cb.body
 }
