@@ -18,10 +18,11 @@ type ControlledBody struct {
   sim               *Simulation
   collider          *Collider
 
-  xBlocks           []int32
-  yBlocks           []int32
+  blocks            []Point
+  blockCount        int
 }
 
+var maxBlocks int = 24
 
 // instantiation
 ///////////////////////
@@ -35,6 +36,8 @@ func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*Controlled
   cbod.sqrMaxSpeed = s.Mul(s)
   cbod.body = NewBody()
   cbod.collider = NewCollider(96, 48)
+  cbod.blocks = make([]Point, maxBlocks)
+  cbod.blockCount = 0
 
   return &cbod
 }
@@ -117,27 +120,36 @@ func (cb *ControlledBody) Advance(seq uint16) {
     }
 
     cb.collider.Update(ht.Position, ht.Velocity)
-    // potentialCollisions := wm.GetBlockRects(cb.Collider.Broad)
-    // if potentialCollisions != nil {
-    //   cc := 1
-    //   check2 := ht
-    //   check, _ := cb.Collider.Check(ht, potentialCollisions)
-    //   for check != check2 && cc <= 4 {
-    //     check2 = check
-    //     check, _ = cb.Collider.Check(check, potentialCollisions)
-    //     cc++
-    //   }
+    potentialCollisions := []Rect{}
+    for i := 0; i < cb.blockCount; i++ {
+      r := NewRect(cb.blocks[i].X, cb.blocks[i].Y, cb.sim.scale, cb.sim.scale)
+      potentialCollisions = append(potentialCollisions, r)
+    }
 
-    //   if ht != check {
-    //     stats := cb.controllingPlayer.Stats
-    //     if check.Velocity.LenSqr() > (stats.MaxSpeed * stats.MaxSpeed) {
-    //       check.Velocity = check.Velocity.Normalize().Mul(stats.MaxSpeed)
-    //     }
-    //     cb.stateBuffer.Insert(check, 1)
-    //     cb.stateBuffer.Clean()
-    //     ht = check
-    //   }
-    // }
+    if cb.blockCount > 0 {
+      cc := 1
+      check2 := ht
+      check := cb.collider.Check(ht, potentialCollisions)
+      for check != check2 && cc <= 4 {
+        check2 = check
+        check = cb.collider.Check(check, potentialCollisions)
+        cc++
+      }
+
+      if ht != check {
+        sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+        sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+        sqrMagnitude := sqrX.Add(sqrY)
+        if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+          ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+        }
+        cb.stateBuffer.Insert(check, 1)
+        cb.stateBuffer.Clean()
+        ht = check
+      }
+    }
+
+    cb.blockCount = 0
 
     cb.body.NextPos = ht.Position
     cb.body.NextAngle = ht.Angle
@@ -162,9 +174,9 @@ func (cb *ControlledBody) GetPositionY(seq uint16) fixpoint.Q16 {
   return ht.Position.Y
 }
 
-func (cb *ControlledBody) SetBlocks(x, y []int32) {
-  cb.xBlocks = x
-  cb.yBlocks = y
+func (cb *ControlledBody) AddBlock(x, y int32) {
+  cb.blocks = append(cb.blocks, Point{fixpoint.Q16FromInt32(x), fixpoint.Q16FromInt32(y)})
+  cb.blockCount++
 }
 
 func (cb *ControlledBody) GetBody() *Body {
