@@ -27,17 +27,17 @@ func NewCollider(broadSize, narrowSize int32) *Collider {
   c.halfBroadSize = fixpoint.Q16FromInt32(broadSize/2)
   c.halfNarrowSize = fixpoint.Q16FromInt32(narrowSize/2)
 
-  c.Broad = NewRect(c.halfBroadSize, c.halfBroadSize, broadSize, broadSize)
-  c.Narrow = NewRect(c.halfNarrowSize, c.halfNarrowSize, narrowSize, narrowSize)
+  c.Broad = NewRect(c.halfBroadSize, c.halfBroadSize, c.broadSize, c.broadSize)
+  c.Narrow = NewRect(c.halfNarrowSize, c.halfNarrowSize, c.narrowSize, c.narrowSize)
 
   return &c
 }
 
 func (c *Collider) Update(position, velocity fixpoint.Vec3Q16) {
-  sc.Broad.Min = Point{ position.X.Sub(c.halfBroadSize), position.Y.Sub(c.halfBroadSize)}
-  sc.Broad.Max = Point{ position.X.Add(c.halfBroadSize), position.Y.Add(c.halfBroadSize)}
-  sc.Narrow.Min = Point{ position.X.Sub(c.halfNarrowSize), position.Y.Sub(c.halfNarrowSize)}
-  sc.Narrow.Max = Point{ position.X.Add(c.halfNarrowSize), position.Y.Add(c.halfNarrowSize)}
+  c.Broad.Min = Point{ position.X.Sub(c.halfBroadSize), position.Y.Sub(c.halfBroadSize)}
+  c.Broad.Max = Point{ position.X.Add(c.halfBroadSize), position.Y.Add(c.halfBroadSize)}
+  c.Narrow.Min = Point{ position.X.Sub(c.halfNarrowSize), position.Y.Sub(c.halfNarrowSize)}
+  c.Narrow.Max = Point{ position.X.Add(c.halfNarrowSize), position.Y.Add(c.halfNarrowSize)}
 }
 
 func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) HistoricalTransform {
@@ -48,7 +48,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   for i := 0; i < len(potentialCollisions); i++ {
     col := c.sweep(ht.Velocity, potentialCollisions[i])
-    if col.Area.N > cloesst.Area.N {
+    if col.Area.N > closest.Area.N {
       closest = col
     }
   }
@@ -138,7 +138,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   entryTime := fixpoint.Max(txEntry, tyEntry)
   exitTime := fixpoint.Min(txExit, tyExit)
 
-  exiting := entryTime.N > exitTime
+  exiting := entryTime.N > exitTime.N
   negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
   futureEntry := txEntry.N > fixpoint.OneQ16.N || tyEntry.N > fixpoint.OneQ16.N
 
@@ -147,7 +147,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
     result.Time = entryTime
-    movedBody := NewRect(c.Narrow.Min.X + velocity.X, c.Narrow.Y + velocity.Y, c.Narrow.W, c.Narrow.H)
+    movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
     result.Area = RectOverlap(movedBody, block)
     if txEntry.N > tyEntry.N {
       if dxEntry.N < 0 {

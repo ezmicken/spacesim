@@ -25,7 +25,7 @@ func NewRect(x, y, w, h fixpoint.Q16) Rect {
   return r
 }
 
-func RectOverlap(a, b Rect) Q16 {
+func RectOverlap(a, b Rect) fixpoint.Q16 {
   axMax := a.X.Add(a.W)
   ayMax := a.Y.Add(a.H)
   bxMax := b.X.Add(b.W)
