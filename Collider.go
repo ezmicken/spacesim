@@ -1,177 +1,168 @@
 package spacesim
 
-// import(
-//   //"log"
-//   "github.com/go-gl/mathgl/mgl32"
-//   "github.com/chewxy/math32"
-//   "go-space-serv/internal/space/geom"
-// )
+import(
+  "github.com/ezmicken/fixpoint"
+)
 
-// type SpaceCollider struct {
-//   broadSize       int
-//   narrowSize      int
-//   halfBroadSize   int
-//   halfNarrowSize  int
+type Collider struct {
+  broadSize       fixpoint.Q16
+  narrowSize      fixpoint.Q16
+  halfBroadSize   fixpoint.Q16
+  halfNarrowSize  fixpoint.Q16
 
-//   Broad           geom.Rect
-//   Narrow          geom.Rect
-// }
+  Broad           Rect
+  Narrow          Rect
+}
 
-// type collision struct {
-//   Time float32
-//   Normal mgl32.Vec3
-//   Area float32
-// }
+type collision struct {
+  Time    fixpoint.Q16
+  Normal  fixpoint.Vec3Q16
+  Area    fixpoint.Q16
+}
 
-// func NewSpaceCollider(broadSize, narrowSize int) *SpaceCollider {
-//   var c SpaceCollider
-//   c.broadSize = broadSize
-//   c.narrowSize = narrowSize
-//   c.halfBroadSize = broadSize/2
-//   c.halfNarrowSize = narrowSize/2
+func NewCollider(broadSize, narrowSize int32) *Collider {
+  var c Collider
+  c.broadSize = fixpoint.Q16FromInt32(broadSize)
+  c.narrowSize = fixpoint.Q16FromInt32(narrowSize)
+  c.halfBroadSize = fixpoint.Q16FromInt32(broadSize/2)
+  c.halfNarrowSize = fixpoint.Q16FromInt32(narrowSize/2)
 
-//   c.Broad = geom.NewRect(float32(-c.halfBroadSize), float32(-c.halfBroadSize), float32(broadSize), float32(broadSize))
-//   c.Narrow = geom.NewRect(float32(-c.halfNarrowSize), float32(-c.halfNarrowSize), float32(narrowSize), float32(narrowSize))
-//   return &c
-// }
+  c.Broad = NewRect(c.halfBroadSize, c.halfBroadSize, broadSize, broadSize)
+  c.Narrow = NewRect(c.halfNarrowSize, c.halfNarrowSize, narrowSize, narrowSize)
 
-// func (sc *SpaceCollider) Update(position, velocity mgl32.Vec3) {
-//   sc.Broad.X = position.X() - float32(sc.halfBroadSize)
-//   sc.Broad.Y = position.Y() - float32(sc.halfBroadSize)
+  return &c
+}
 
-//   if velocity.X() > 0 { sc.Broad.X -= velocity.X() }
-//   if velocity.Y() > 0 { sc.Broad.Y -= velocity.Y() }
-//   sc.Broad.W = float32(sc.broadSize) + velocity.X()
-//   sc.Broad.H = float32(sc.broadSize) + velocity.Y()
+func (c *Collider) Update(position, velocity fixpoint.Vec3Q16) {
+  sc.Broad.Min = Point{ position.X.Sub(c.halfBroadSize), position.Y.Sub(c.halfBroadSize)}
+  sc.Broad.Max = Point{ position.X.Add(c.halfBroadSize), position.Y.Add(c.halfBroadSize)}
+  sc.Narrow.Min = Point{ position.X.Sub(c.halfNarrowSize), position.Y.Sub(c.halfNarrowSize)}
+  sc.Narrow.Max = Point{ position.X.Add(c.halfNarrowSize), position.Y.Add(c.halfNarrowSize)}
+}
 
-//   sc.Narrow.X = position.X() - float32(sc.halfNarrowSize)
-//   sc.Narrow.Y = position.Y() - float32(sc.halfNarrowSize)
-// }
+func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) HistoricalTransform {
+  var closest collision
+  closest.Time = fixpoint.ZeroQ16
+  closest.Normal = fixpoint.ZeroVec3Q16
+  closest.Area = fixpoint.ZeroQ16
 
-// func (sc *SpaceCollider) Check(ht HistoricalTransform, potentialCollisions []geom.Rect) (HistoricalTransform, int) {
-//   var closest collision
-//   closest.Time = float32(1.0)
-//   closest.Normal = mgl32.Vec3{0, 0, 0}
-//   closest.Area = 0.0
-//   closestIdx := -1
+  for i := 0; i < len(potentialCollisions); i++ {
+    col := c.sweep(ht.Velocity, potentialCollisions[i])
+    if col.Area.N > cloesst.Area.N {
+      closest = col
+    }
+  }
 
-//   for i := 0; i < len(potentialCollisions); i++ {
-//     col := sc.sweep(ht.Velocity, potentialCollisions[i])
-//     if col.Area > closest.Area {
-//       closest = col
-//       closestIdx = i
-//     }
-//   }
+  pos := ht.Position
+  vel := ht.Velocity
 
-//   pos := ht.Position
-//   vel := ht.Velocity
+  remainingTime := fixpoint.OneQ16.Sub(closest.Time)
+  threshold := fixpoint.Q16FromFloat(0.001)
+  if remainingTime.N > 0 {
+    if fixpoint.Abs(closest.Normal.X).N > threshold.N {
+      if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
+        pos.X = pos.X.Add(vel.X.Mul(closest.Time))
+        vel.X = fixpoint.ZeroQ16
+      } else {
+        pos.X = pos.X.Add(vel.X.Mul(closest.Time))
+        vel.X = vel.X.Mul(fixpoint.HalfQ16)
+        pos.X = pos.X.Add(vel.Y.Mul(remainingTime))
+      }
+    }
 
-//   remainingTime := float32(1.0) - closest.Time
-//   if remainingTime > 0.0 {
-//     if math32.Abs(closest.Normal[0]) > 0.001 {
-//       if math32.Abs(vel[0]) < 1.0 {
-//         pos[0] += (vel[0] * closest.Time)
-//         vel[0] = 0.0
-//       } else {
-//         pos[0] += (vel[0] * closest.Time)
-//         vel[0] *= float32(-0.5)
-//         pos[0] += (vel[0] * remainingTime)
-//       }
-//     }
+    if fixpoint.Abs(closest.Normal.Y).N > threshold.N {
+      if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
+        pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time))
+        vel.Y = fixpoint.ZeroQ16
+      } else {
+        pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time))
+        vel.Y = vel.Y.Mul(fixpoint.HalfQ16)
+        pos.Y = pos.Y.Add(vel.Y.Mul(remainingTime))
+      }
+    }
 
-//     if math32.Abs(closest.Normal[1]) > 0.001 {
-//       if math32.Abs(vel[1]) < 1.0 {
-//         pos[1] += (vel[0] * closest.Time)
-//         vel[1] = 0.0
-//       } else {
-//         pos[1] += (vel[1] * closest.Time)
-//         vel[1] *= float32(-0.5)
-//         pos[1] += (vel[1] * remainingTime)
-//       }
-//     }
+    ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
+    ht.Position = pos
+    ht.Velocity = vel
 
-//     ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
-//     ht.Position = pos
-//     ht.Velocity = vel
+    c.Update(ht.Position, ht.Velocity)
+  }
 
-//     sc.Update(ht.Position, ht.Velocity)
-//   }
+  return ht
+}
 
-//   return ht, closestIdx
-// }
+func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
+  var dxEntry fixpoint.Q16
+  var dxExit fixpoint.Q16
+  var dyEntry fixpoint.Q16
+  var dyExit fixpoint.Q16
+  var result collision
 
-// func (sc *SpaceCollider) sweep(velocity mgl32.Vec3, block geom.Rect) collision {
-//   var dxEntry float32
-//   var dxExit float32
-//   var dyEntry float32
-//   var dyExit float32
-//   var result collision
+  if velocity.X.N > fixpoint.ZeroQ16.N {
+    dxEntry = block.Min.X.Sub(c.Narrow.Max.X)
+    dxExit = block.Max.X.Sub(c.Narrow.Min.X)
+  } else {
+    dxEntry = block.Max.X.Sub(c.Narrow.Min.X)
+    dxExit = block.Min.X.Sub(c.Narrow.Max.X)
+  }
 
-//   if velocity.X() > 0 {
-//     dxEntry = block.X - (sc.Narrow.X + sc.Narrow.W)
-//     dxExit = (block.X + block.W) - sc.Narrow.X
-//   } else {
-//     dxEntry = (block.X + block.W) - sc.Narrow.X
-//     dxExit = block.X - (sc.Narrow.X + sc.Narrow.W)
-//   }
+  if velocity.Y.N > fixpoint.ZeroQ16.N {
+    dyEntry = block.Min.Y.Sub(c.Narrow.Max.Y)
+    dyExit = block.Max.Y.Sub(c.Narrow.Min.Y)
+  } else {
+    dyEntry = block.Max.Y.Sub(c.Narrow.Min.Y)
+    dyExit = block.Min.Y.Sub(c.Narrow.Max.Y)
+  }
 
-//   if velocity.Y() > 0 {
-//     dyEntry = block.Y - (sc.Narrow.Y + sc.Narrow.H)
-//     dyExit = (block.Y + block.H) - sc.Narrow.Y
-//   } else {
-//     dyEntry = (block.Y + block.H) - sc.Narrow.Y
-//     dyExit = block.Y - (sc.Narrow.Y + sc.Narrow.H)
-//   }
+  var txEntry fixpoint.Q16
+  var txExit fixpoint.Q16
+  var tyEntry fixpoint.Q16
+  var tyExit fixpoint.Q16
 
-//   var txEntry float32
-//   var txExit float32
-//   var tyEntry float32
-//   var tyExit float32
+  if velocity.X.N == fixpoint.ZeroQ16.N {
+    txEntry = fixpoint.MaxQ16.Neg()
+    txExit = fixpoint.MaxQ16
+  } else {
+    txEntry = dxEntry.Div(velocity.X)
+    txExit = dxExit.Div(velocity.X)
+  }
 
-//   if velocity.X() == 0 {
-//     txEntry = math32.Inf(-1)
-//     txExit = math32.Inf(1)
-//   } else {
-//     txEntry = dxEntry / velocity.X()
-//     txExit = dxExit / velocity.X()
-//   }
+  if velocity.Y.N == fixpoint.ZeroQ16.N {
+    tyEntry = fixpoint.MaxQ16.Neg()
+    tyExit = fixpoint.MaxQ16
+  } else {
+    tyEntry = dyEntry.Div(velocity.Y)
+    tyExit = dyExit.Div(velocity.Y)
+  }
 
-//   if velocity.Y() == 0 {
-//     tyEntry = math32.Inf(-1)
-//     tyExit = math32.Inf(1)
-//   } else {
-//     tyEntry = dyEntry / velocity.Y()
-//     tyExit = dyExit / velocity.Y()
-//   }
+  entryTime := fixpoint.Max(txEntry, tyEntry)
+  exitTime := fixpoint.Min(txExit, tyExit)
 
-//   entryTime := math32.Max(txEntry, tyEntry)
-//   exitTime := math32.Min(txExit, tyExit)
+  exiting := entryTime.N > exitTime
+  negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
+  futureEntry := txEntry.N > fixpoint.OneQ16.N || tyEntry.N > fixpoint.OneQ16.N
 
-//   exiting := entryTime > exitTime
-//   negativeEntry := (txEntry < 0.0 && tyEntry < 0.0)
-//   futureEntry := txEntry > 1.0 || tyEntry > 1.0
+  if exiting || negativeEntry || futureEntry {
+    result.Time = fixpoint.OneQ16
+    result.Normal = fixpoint.ZeroVec3Q16
+  } else {
+    result.Time = entryTime
+    movedBody := NewRect(c.Narrow.Min.X + velocity.X, c.Narrow.Y + velocity.Y, c.Narrow.W, c.Narrow.H)
+    result.Area = RectOverlap(movedBody, block)
+    if txEntry.N > tyEntry.N {
+      if dxEntry.N < 0 {
+        result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(-1.0, 0.0, 0.0)
+      }
+    } else {
+      if dyEntry.N < 0 {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0.0, 1.0, 0.0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0.0, -1.0, 0.0)
+      }
+    }
+  }
 
-//   if exiting || negativeEntry || futureEntry {
-//     result.Time = 1.0
-//     result.Normal = mgl32.Vec3{0, 0, 0}
-//   } else {
-//     result.Time = entryTime
-//     movedBody := geom.NewRect(sc.Narrow.X + velocity[0], sc.Narrow.Y + velocity[1], sc.Narrow.W, sc.Narrow.H)
-//     result.Area = geom.RectOverlap(movedBody, block)
-//     if txEntry > tyEntry {
-//       if dxEntry < 0.0 {
-//         result.Normal = mgl32.Vec3{1, 0, 0}
-//       } else {
-//         result.Normal = mgl32.Vec3{-1, 0, 0}
-//       }
-//     } else {
-//       if dyEntry < 0.0 {
-//         result.Normal = mgl32.Vec3{0, 1, 0}
-//       } else {
-//         result.Normal = mgl32.Vec3{0, -1, 0}
-//       }
-//     }
-//   }
-
-//   return result
-// }
+  return result
+}

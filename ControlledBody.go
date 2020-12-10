@@ -105,6 +105,8 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
   cb.stateBuffer.Clean()
 }
 
+
+
 func (cb *ControlledBody) Advance(seq uint16) {
   cb.body.Advance(seq)
 
@@ -115,7 +117,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
       ht = cb.stateBuffer.Advance()
     }
 
-    // cb.Collider.Update(ht.Position, ht.Velocity)
+    cb.Collider.Update(ht.Position, ht.Velocity)
     // potentialCollisions := wm.GetBlockRects(cb.Collider.Broad)
     // if potentialCollisions != nil {
     //   cc := 1
