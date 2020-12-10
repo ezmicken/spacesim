@@ -34,7 +34,7 @@ func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*Controlled
   cbod.maxSpeed = s
   cbod.sqrMaxSpeed = s.Mul(s)
   cbod.body = NewBody()
-  cbod.Collider = NewCollider(96, 48)
+  cbod.collider = NewCollider(96, 48)
 
   return &cbod
 }
@@ -116,7 +116,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
       ht = cb.stateBuffer.Advance()
     }
 
-    cb.Collider.Update(ht.Position, ht.Velocity)
+    cb.collider.Update(ht.Position, ht.Velocity)
     // potentialCollisions := wm.GetBlockRects(cb.Collider.Broad)
     // if potentialCollisions != nil {
     //   cc := 1

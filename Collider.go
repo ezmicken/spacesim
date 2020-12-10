@@ -147,7 +147,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
     result.Time = entryTime
-    movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
+    movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Min.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
     result.Area = RectOverlap(movedBody, block)
     if txEntry.N > tyEntry.N {
       if dxEntry.N < 0 {
