@@ -38,6 +38,7 @@ func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*Controlled
   cbod.collider = NewCollider(96, 48)
   cbod.blocks = make([]Point, maxBlocks)
   cbod.blockCount = 0
+  cbod.sim = sim
 
   return &cbod
 }
