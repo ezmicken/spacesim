@@ -122,7 +122,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
     cb.collider.Update(ht.Position, ht.Velocity)
     potentialCollisions := []Rect{}
     for i := 0; i < cb.blockCount; i++ {
-      r := NewRect(cb.blocks[i].X, cb.blocks[i].Y, cb.sim.scale, cb.sim.scale)
+      r := NewRect(cb.blocks[i].X.Mul(cb.sim.scale), cb.blocks[i].Y.Mul(cb.sim.scale), cb.sim.scale, cb.sim.scale)
       potentialCollisions = append(potentialCollisions, r)
     }
 
