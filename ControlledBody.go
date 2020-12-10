@@ -176,7 +176,7 @@ func (cb *ControlledBody) GetPositionY(seq uint16) fixpoint.Q16 {
 }
 
 func (cb *ControlledBody) AddBlock(x, y int32) {
-  cb.blocks = append(cb.blocks, Point{fixpoint.Q16FromInt32(x), fixpoint.Q16FromInt32(y)})
+  cb.blocks[cb.blockCount] = Point{fixpoint.Q16FromInt32(x), fixpoint.Q16FromInt32(y)}
   cb.blockCount++
 }
 
