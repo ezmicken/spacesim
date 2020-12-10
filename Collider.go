@@ -65,7 +65,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
         vel.X = fixpoint.ZeroQ16
       } else {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
-        vel.X = vel.X.Mul(fixpoint.HalfQ16)
+        vel.X = vel.X.Mul(fixpoint.HalfQ16).Neg()
         pos.X = pos.X.Add(vel.Y.Mul(remainingTime))
       }
     }
@@ -76,7 +76,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
         vel.Y = fixpoint.ZeroQ16
       } else {
         pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time))
-        vel.Y = vel.Y.Mul(fixpoint.HalfQ16)
+        vel.Y = vel.Y.Mul(fixpoint.HalfQ16).Neg()
         pos.Y = pos.Y.Add(vel.Y.Mul(remainingTime))
       }
     }

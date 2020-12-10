@@ -22,7 +22,7 @@ type ControlledBody struct {
   blockCount        int
 }
 
-var maxBlocks int = 24
+var maxBlocks int = 64
 
 // instantiation
 ///////////////////////
