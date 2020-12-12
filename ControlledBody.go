@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  //"log"
+  "log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -106,26 +106,26 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
   ht.Seq++
 
   // detect collision
-  cb.collider.Update(ht.Position, ht.Velocity)
+//  cb.collider.Update(ht.Position, ht.Velocity)
 
-  cc := 1
-  check2 := ht
-  check := cb.collider.Check(ht, cb.blocks)
-  for check != check2 && cc <= 4 {
-    check2 = check
-    check = cb.collider.Check(check, cb.blocks)
-    cc++
-  }
+  // cc := 1
+  // check2 := ht
+  // check := cb.collider.Check(ht, cb.blocks)
+  // for check != check2 && cc <= 4 {
+  //   check2 = check
+  //   check = cb.collider.Check(check, cb.blocks)
+  //   cc++
+  // }
 
-  if ht != check {
-    sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
-    sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
-    sqrMagnitude := sqrX.Add(sqrY)
-    if sqrMagnitude.N > cb.sqrMaxSpeed.N {
-      ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
-    }
-    ht = check
-  }
+  // if ht != check {
+  //   sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+  //   sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+  //   sqrMagnitude := sqrX.Add(sqrY)
+  //   if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+  //     ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+  //   }
+  //   ht = check
+  // }
 
   cb.stateBuffer.Insert(ht, 0)
   cb.stateBuffer.Clean()
@@ -194,10 +194,12 @@ func (cb *ControlledBody) AddBlock(x, y int32) {
   for i := 0; i < maxBlocks; i++ {
     block := cb.blocks[wrap(cb.blockHead-i)]
     if block.Min.X.N == fixedX.N && block.Min.Y.N == fixedY.N {
+      log.Printf("%v/%v already in, discarding", x, y)
       return
     }
   }
 
+  log.Printf("%v/%v added", x, y)
   cb.blocks[cb.blockHead] = NewRect(fixedX, fixedY, cb.sim.scale, cb.sim.scale)
   cb.blockHead++
   cb.blockHead = wrap(cb.blockHead)
