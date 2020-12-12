@@ -191,18 +191,18 @@ func (cb *ControlledBody) AddBlock(x, y int32) {
 
   for i := 0; i < maxBlocks; i++ {
     block := cb.blocks[wrap(cb.blockHead-i)]
-    if block.Min.X == fixedX && block.Min.Y == fixedY {
+    if block.Min.X.N == fixedX.N && block.Min.Y.N == fixedY.N {
       return
     }
   }
 
   cb.blocks[cb.blockHead] = NewRect(fixedX, fixedY, cb.sim.scale, cb.sim.scale)
   cb.blockHead++
-  wrap(cb.blockHead)
+  cb.blockHead = wrap(cb.blockHead)
 }
 
 func wrap(i int) int {
-  for i > maxBlocks { i -= maxBlocks }
+  for i >= maxBlocks { i -= maxBlocks }
   for i < 0 { i += maxBlocks }
 
   return i
