@@ -141,6 +141,8 @@ func (cb *ControlledBody) Advance(seq uint16) {
       ht = cb.stateBuffer.Advance()
     }
 
+    cb.collider.Update(ht.Position, ht.Velocity)
+
     cc := 1
     check2 := ht
     check := cb.collider.Check(ht, cb.blocks)
