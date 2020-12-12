@@ -189,7 +189,7 @@ func (cb *ControlledBody) AddBlock(x, y int32) {
   fixedX := fixpoint.Q16FromInt32(x)
   fixedY := fixpoint.Q16FromInt32(y)
 
-  for i := 0; i < maxBlocks; {
+  for i := 0; i < maxBlocks; i++ {
     block := cb.blocks[wrap(cb.blockHead-i)]
     if block.Min.X == fixedX && block.Min.Y == fixedY {
       return
