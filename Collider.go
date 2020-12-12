@@ -47,12 +47,12 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   closest.Area = fixpoint.ZeroQ16
 
   for i := 0; i < len(potentialCollisions); i++ {
-    //if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
+    if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
       if col.Area.N > closest.Area.N {
         closest = col
       }
-    //}
+    }
   }
 
   pos := ht.Position
