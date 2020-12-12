@@ -104,6 +104,38 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
   }
 
   ht.Seq++
+
+  // detect collision
+  cb.collider.Update(ht.Position, ht.Velocity)
+  potentialCollisions := []Rect{}
+  for i := 0; i < cb.blockCount; i++ {
+    r := NewRect(cb.blocks[i].X.Mul(cb.sim.scale), cb.blocks[i].Y.Mul(cb.sim.scale), cb.sim.scale, cb.sim.scale)
+    potentialCollisions = append(potentialCollisions, r)
+  }
+
+  if cb.blockCount > 0 {
+    cc := 1
+    check2 := ht
+    check := cb.collider.Check(ht, potentialCollisions)
+    for check != check2 && cc <= 4 {
+      check2 = check
+      check = cb.collider.Check(check, potentialCollisions)
+      cc++
+    }
+
+    if ht != check {
+      sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+      sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+      sqrMagnitude := sqrX.Add(sqrY)
+      if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+        ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+      }
+      ht = check
+    }
+  }
+
+  cb.blockCount = 0
+
   cb.stateBuffer.Insert(ht, 0)
   cb.stateBuffer.Clean()
 }
@@ -120,37 +152,37 @@ func (cb *ControlledBody) Advance(seq uint16) {
       ht = cb.stateBuffer.Advance()
     }
 
-    cb.collider.Update(ht.Position, ht.Velocity)
-    potentialCollisions := []Rect{}
-    for i := 0; i < cb.blockCount; i++ {
-      r := NewRect(cb.blocks[i].X.Mul(cb.sim.scale), cb.blocks[i].Y.Mul(cb.sim.scale), cb.sim.scale, cb.sim.scale)
-      potentialCollisions = append(potentialCollisions, r)
-    }
+    // cb.collider.Update(ht.Position, ht.Velocity)
+    // potentialCollisions := []Rect{}
+    // for i := 0; i < cb.blockCount; i++ {
+    //   r := NewRect(cb.blocks[i].X.Mul(cb.sim.scale), cb.blocks[i].Y.Mul(cb.sim.scale), cb.sim.scale, cb.sim.scale)
+    //   potentialCollisions = append(potentialCollisions, r)
+    // }
 
-    if cb.blockCount > 0 {
-      cc := 1
-      check2 := ht
-      check := cb.collider.Check(ht, potentialCollisions)
-      for check != check2 && cc <= 4 {
-        check2 = check
-        check = cb.collider.Check(check, potentialCollisions)
-        cc++
-      }
+    // if cb.blockCount > 0 {
+    //   cc := 1
+    //   check2 := ht
+    //   check := cb.collider.Check(ht, potentialCollisions)
+    //   for check != check2 && cc <= 4 {
+    //     check2 = check
+    //     check = cb.collider.Check(check, potentialCollisions)
+    //     cc++
+    //   }
 
-      if ht != check {
-        sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
-        sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
-        sqrMagnitude := sqrX.Add(sqrY)
-        if sqrMagnitude.N > cb.sqrMaxSpeed.N {
-          ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
-        }
-        cb.stateBuffer.Insert(check, 1)
-        cb.stateBuffer.Clean()
-        ht = check
-      }
-    }
+    //   if ht != check {
+    //     sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+    //     sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+    //     sqrMagnitude := sqrX.Add(sqrY)
+    //     if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+    //       ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+    //     }
+    //     cb.stateBuffer.Insert(check, 1)
+    //     cb.stateBuffer.Clean()
+    //     ht = check
+    //   }
+    // }
 
-    cb.blockCount = 0
+    //cb.blockCount = 0
 
     cb.body.NextPos = ht.Position
     cb.body.NextAngle = ht.Angle
