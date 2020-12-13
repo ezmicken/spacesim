@@ -43,7 +43,7 @@ func (c *Collider) Update(position, velocity fixpoint.Vec3Q16) {
 
 func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) HistoricalTransform {
   var closest collision
-  closest.Time = fixpoint.ZeroQ16
+  closest.Time = fixpoint.OneQ16
   closest.Normal = fixpoint.ZeroVec3Q16
   closest.Area = fixpoint.ZeroQ16
 
