@@ -11,5 +11,6 @@ type HistoricalTransform struct {
   Position      fixpoint.Vec3Q16
   Velocity      fixpoint.Vec3Q16
   VelocityDelta fixpoint.Vec3Q16
+  collision     bool
 }
 
