@@ -61,7 +61,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   remainingTime := fixpoint.OneQ16.Sub(closest.Time)
   threshold := fixpoint.Q16FromFloat(0.001)
-  if remainingTime.N > 0 {
+  if remainingTime.N > fixpoint.ZeroQ16.N {
     log.Printf("collision: %v %v/%v %v", closest.Time.N, closest.Normal.X.N, closest.Normal.Y.N, closest.Area.N)
     if fixpoint.Abs(closest.Normal.X).N > threshold.N {
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
