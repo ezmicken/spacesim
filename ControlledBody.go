@@ -127,7 +127,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
     ht = check
   }
 
-  cb.stateBuffer.Insert(ht, 0)
+  cb.stateBuffer.Insert(ht, 1)
   cb.stateBuffer.Clean()
 }
 
