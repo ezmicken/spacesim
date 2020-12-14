@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  //"log"
+  "log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -19,6 +19,7 @@ type collision struct {
   Time    fixpoint.Q16
   Normal  fixpoint.Vec3Q16
   Area    fixpoint.Q16
+  Block   Rect
 }
 
 func NewCollider(broadSize, narrowSize int32) *Collider {
@@ -62,6 +63,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   remainingTime := fixpoint.OneQ16.Sub(closest.Time)
   threshold := fixpoint.Q16FromFloat(0.001)
   if remainingTime.N > fixpoint.ZeroQ16.N {
+    log.Printf("COLLISION: %v/%v", closest.Block.Min.X.Float(), closest.Block.Min.Y.Float())
     if fixpoint.Abs(closest.Normal.X).N > threshold.N {
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
@@ -100,6 +102,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   var dyEntry fixpoint.Q16
   var dyExit fixpoint.Q16
   var result collision
+  result.Block = block
 
   if velocity.X.N > fixpoint.ZeroQ16.N {
     dxEntry = block.Min.X.Sub(c.Narrow.Max.X)
