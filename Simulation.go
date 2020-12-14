@@ -48,8 +48,8 @@ func (s *Simulation) GetBody(id uint16) *Body {
   }
 }
 
-func (s *Simulation) AddControlledBody(id uint16, x, y int32) {
-  cb := NewControlledBody(rotationSpeed, thrust, maxSpeed, s)
+func (s *Simulation) AddControlledBody(id uint16, x, y, d int32) {
+  cb := NewControlledBody(rotationSpeed, d, thrust, maxSpeed, s)
   s.allBodies = append(s.allBodies, cb.GetBody())
   s.controlledBodies.Store(id, cb)
   s.bodiesById.Store(id, cb.GetBody())

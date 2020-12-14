@@ -20,6 +20,8 @@ type ControlledBody struct {
 
   blocks            []Rect
   blockHead         int
+
+  delay             int
 }
 
 var maxBlocks int = 128
@@ -27,7 +29,7 @@ var maxBlocks int = 128
 // instantiation
 ///////////////////////
 
-func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*ControlledBody) {
+func NewControlledBody(r, d int32, t, s fixpoint.Q16, sim *Simulation) (*ControlledBody) {
   var cbod ControlledBody
   cbod.stateBuffer = NewStateBuffer(256)
   cbod.rotationSpeed = r
@@ -39,6 +41,7 @@ func NewControlledBody(r int32, t, s fixpoint.Q16, sim *Simulation) (*Controlled
   cbod.blocks = make([]Rect, maxBlocks)
   cbod.blockHead = 0
   cbod.sim = sim
+  cbod.delay = int(d)
 
   return &cbod
 }
@@ -105,7 +108,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
 
   ht.Seq++
 
-  cb.stateBuffer.Insert(ht, 0)
+  cb.stateBuffer.Insert(ht, cb.delay)
   cb.stateBuffer.Clean()
 }
 
@@ -131,7 +134,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
     }
 
     if ht != check {
-      cb.stateBuffer.Insert(check, 0)
+      cb.stateBuffer.Insert(check, 1)
       cb.stateBuffer.Clean()
       ht = check
     }
