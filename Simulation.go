@@ -64,7 +64,6 @@ func (s *Simulation) AddControlledBody(id uint16, x, y int32) {
   ht.Position = fixpoint.Vec3Q16{xPos, yPos, fixpoint.ZeroQ16}
   ht.Velocity = fixpoint.ZeroVec3Q16
   ht.VelocityDelta = fixpoint.ZeroVec3Q16
-  ht.collision = false
 
   cb.Initialize(ht)
 
