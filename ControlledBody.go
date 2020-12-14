@@ -131,7 +131,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
     }
 
     if ht != check {
-      cb.stateBuffer.Insert(check, 1)
+      cb.stateBuffer.Insert(check, 0)
       cb.stateBuffer.Clean()
       ht = check
     }
