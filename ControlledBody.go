@@ -106,26 +106,26 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
   ht.Seq++
 
   // detect collision
-  cb.collider.Update(ht.Position, ht.Velocity)
+  // cb.collider.Update(ht.Position, ht.Velocity)
 
-  cc := 1
-  check2 := ht
-  check := cb.collider.Check(ht, cb.blocks)
-  for check != check2 && cc <= 4 {
-    check2 = check
-    check = cb.collider.Check(check, cb.blocks)
-    cc++
-  }
+  // cc := 1
+  // check2 := ht
+  // check := cb.collider.Check(ht, cb.blocks)
+  // for check != check2 && cc <= 4 {
+  //   check2 = check
+  //   check = cb.collider.Check(check, cb.blocks)
+  //   cc++
+  // }
 
-  if ht != check {
-    sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
-    sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
-    sqrMagnitude := sqrX.Add(sqrY)
-    if sqrMagnitude.N > cb.sqrMaxSpeed.N {
-      ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
-    }
-    ht = check
-  }
+  // if ht != check {
+  //   sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+  //   sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+  //   sqrMagnitude := sqrX.Add(sqrY)
+  //   if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+  //     ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+  //   }
+  //   ht = check
+  // }
 
   cb.stateBuffer.Insert(ht, 0)
   cb.stateBuffer.Clean()
