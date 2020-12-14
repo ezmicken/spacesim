@@ -163,13 +163,13 @@ func (cb *ControlledBody) Advance(seq uint16) {
       cb.stateBuffer.Clean()
       ht = check
     }
+
+    log.Printf("%v", ht)
+
+    cb.body.NextPos = ht.Position
+    cb.body.NextAngle = ht.Angle
+    cb.body.Vel = ht.Velocity
   }
-
-  log.Printf("%v", ht)
-
-  cb.body.NextPos = ht.Position
-  cb.body.NextAngle = ht.Angle
-  cb.body.Vel = ht.Velocity
 
   return
 }
