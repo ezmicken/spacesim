@@ -91,13 +91,13 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
     originalVel := ht.Velocity
     ht.Velocity = ht.Velocity.Add(accVec)
 
-    // sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
-    // sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
-    // sqrMagnitude := sqrX.Add(sqrY)
+    sqrX := ht.Velocity.X.Mul(ht.Velocity.X)
+    sqrY := ht.Velocity.Y.Mul(ht.Velocity.Y)
+    sqrMagnitude := sqrX.Add(sqrY)
 
-    // if sqrMagnitude.N > cb.sqrMaxSpeed.N {
-    //   ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
-    // }
+    if sqrMagnitude.N > cb.sqrMaxSpeed.N {
+      ht.Velocity = ht.Velocity.Normalize().Mul(cb.maxSpeed)
+    }
     ht.VelocityDelta = ht.Velocity.Sub(originalVel)
   } else {
     ht.VelocityDelta = fixpoint.ZeroVec3Q16
