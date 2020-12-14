@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  "log"
+  //"log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -62,7 +62,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   remainingTime := fixpoint.OneQ16.Sub(closest.Time)
   threshold := fixpoint.Q16FromFloat(0.001)
   if remainingTime.N > fixpoint.ZeroQ16.N {
-    log.Printf("before: %v", ht)
     if fixpoint.Abs(closest.Normal.X).N > threshold.N {
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
@@ -88,8 +87,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
     ht.Position = pos
     ht.Velocity = vel
-
-    log.Printf("after: %v", ht)
 
     c.Update(ht.Position, ht.Velocity)
   }

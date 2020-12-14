@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  //"log"
+  "log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -166,6 +166,8 @@ func (cb *ControlledBody) Advance(seq uint16) {
         ht = check
       }
     }
+
+    log.Printf("%v", ht)
 
     cb.body.NextPos = ht.Position
     cb.body.NextAngle = ht.Angle
