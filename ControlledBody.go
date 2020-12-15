@@ -108,7 +108,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
 
   ht.Seq++
 
-  cb.stateBuffer.Insert(ht, cb.delay)
+  cb.stateBuffer.Insert(ht, 0)
   cb.stateBuffer.Clean()
 }
 
@@ -134,7 +134,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
     }
 
     if ht != check {
-      cb.stateBuffer.Insert(check, 1)
+      cb.stateBuffer.Insert(check, cb.delay)
       cb.stateBuffer.Clean()
       ht = check
     }
