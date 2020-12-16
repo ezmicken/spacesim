@@ -108,7 +108,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
     ht.VelocityDelta = fixpoint.ZeroVec3Q16
   }
 
-  ht.Seq
+  ht.Seq = seq
 
   cb.previous = ht
 
