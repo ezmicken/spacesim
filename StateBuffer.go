@@ -28,7 +28,7 @@ func NewStateBuffer(size int) *StateBuffer {
 }
 
 func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
-  //log.Printf("Initializing statebuffer @ %d", ht.Seq)
+  log.Printf("Initializing statebuffer @ %v", ht.Seq)
   s := int(ht.Seq)
   sb.currentSeq = s
 

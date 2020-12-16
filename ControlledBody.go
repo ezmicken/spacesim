@@ -1,6 +1,7 @@
 package spacesim
 
 import(
+  "log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -107,7 +108,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
     ht.VelocityDelta = fixpoint.ZeroVec3Q16
   }
 
-  ht.Seq++
+  ht.Seq
 
   cb.previous = ht
 
@@ -115,38 +116,37 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
 }
 
 func (cb *ControlledBody) Advance(seq uint16) {
+  log.Printf("ControlledBody advancing to %v", seq)
   cb.body.Advance(seq)
 
-  if cb.stateBuffer.GetCurrentSeq() <= (seq - 1) {
-    // get input from buffer
-    moveshoot := cb.stateBuffer.GetNextInput()
+  // get input from buffer
+  moveshoot := cb.stateBuffer.GetNextInput()
 
-    // apply input to body
-    ht := cb.InputToState(seq, moveshoot)
+  // apply input to body
+  ht := cb.InputToState(seq, moveshoot)
 
-    // update collider based on new state
-    cb.collider.Update(ht.Position, ht.Velocity)
+  // update collider based on new state
+  cb.collider.Update(ht.Position, ht.Velocity)
 
-    // check for collision
-    cc := 1
-    check2 := ht
-    check := cb.collider.Check(ht, cb.blocks)
-    for check != check2 && cc <= 4 {
-      check2 = check
-      check = cb.collider.Check(check, cb.blocks)
-      cc++
-    }
-
-    if ht != check {
-      ht = check
-    }
-    cb.body.NextPos = ht.Position
-    cb.body.NextAngle = ht.Angle
-    cb.body.Vel = ht.Velocity
-
-    // Commit to history.
-    cb.stateBuffer.PushState(ht)
+  // check for collision
+  cc := 1
+  check2 := ht
+  check := cb.collider.Check(ht, cb.blocks)
+  for check != check2 && cc <= 4 {
+    check2 = check
+    check = cb.collider.Check(check, cb.blocks)
+    cc++
   }
+
+  if ht != check {
+    ht = check
+  }
+  cb.body.NextPos = ht.Position
+  cb.body.NextAngle = ht.Angle
+  cb.body.Vel = ht.Velocity
+
+  // Commit to history.
+  cb.stateBuffer.PushState(ht)
 
   return
 }
