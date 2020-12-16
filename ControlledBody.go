@@ -21,6 +21,7 @@ type ControlledBody struct {
   blockHead         int
 
   delay             int
+  previous          HistoricalTransform
 }
 
 var maxBlocks int = 128
@@ -41,6 +42,8 @@ func NewControlledBody(r, d int32, t, s fixpoint.Q16, sim *Simulation) (*Control
   cbod.blockHead = 0
   cbod.sim = sim
   cbod.delay = int(d)
+  zero := fixpoint.ZeroVec3Q16
+  cbod.previous = HistoricalTransform{0, 0, 0, zero, zero, zero}
 
   return &cbod
 }
@@ -50,6 +53,7 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.inputSeq = ht.Seq
   cb.body.Pos = ht.Position
   cb.body.Vel = ht.Velocity
+  cb.previous = ht
 }
 
 func (cb *ControlledBody) PushInput(seq uint16, input byte) {
@@ -57,7 +61,7 @@ func (cb *ControlledBody) PushInput(seq uint16, input byte) {
 }
 
 func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTransform {
-  ht := cb.stateBuffer.Get(seq - 1)
+  ht := cb.previous
 
   acceleration := fixpoint.ZeroQ16
 
@@ -104,6 +108,8 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
   }
 
   ht.Seq++
+
+  cb.previous = ht
 
   return ht
 }
