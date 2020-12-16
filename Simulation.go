@@ -58,7 +58,7 @@ func (s *Simulation) AddControlledBody(id uint16, x, y, d int32) {
   yPos := fixpoint.Q16FromInt32(y).Mul(s.scale).Add(s.halfScale)
 
   var ht HistoricalTransform
-  ht.Seq = s.seq
+  ht.Seq = s.seq - 1
   ht.Angle = 0
   ht.AngleDelta = 0
   ht.Position = fixpoint.Vec3Q16{xPos, yPos, fixpoint.ZeroQ16}
