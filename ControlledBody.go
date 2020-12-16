@@ -52,13 +52,7 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.body.Vel = ht.Velocity
 }
 
-func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
-  if seq < cb.inputSeq {
-    return
-  } else {
-    cb.inputSeq = seq
-  }
-
+func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTransform {
   ht := cb.stateBuffer.Get(seq - 1)
 
   acceleration := fixpoint.ZeroQ16
@@ -107,22 +101,23 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) {
 
   ht.Seq++
 
-  cb.stateBuffer.Insert(ht, 0)
-  cb.stateBuffer.Clean()
+  return ht
 }
 
 func (cb *ControlledBody) Advance(seq uint16) {
   cb.body.Advance(seq)
 
   if cb.stateBuffer.GetCurrentSeq() <= (seq - 1) {
-    ht := cb.stateBuffer.Advance()
+    // get input from buffer
+    moveshoot := cb.stateBuffer.GetNextInput()
 
-    for ht.Seq < (seq - 1) {
-      ht = cb.stateBuffer.Advance()
-    }
+    // apply input to body
+    ht := cb.InputToState(seq, moveshoot)
 
+    // update collider based on new state
     cb.collider.Update(ht.Position, ht.Velocity)
 
+    // check for collision
     cc := 1
     check2 := ht
     check := cb.collider.Check(ht, cb.blocks)
@@ -133,14 +128,14 @@ func (cb *ControlledBody) Advance(seq uint16) {
     }
 
     if ht != check {
-      cb.stateBuffer.Insert(check, cb.delay)
-      cb.stateBuffer.Clean()
       ht = check
     }
-
     cb.body.NextPos = ht.Position
     cb.body.NextAngle = ht.Angle
     cb.body.Vel = ht.Velocity
+
+    // Commit to history.
+    cb.stateBuffer.PushState(ht)
   }
 
   return
