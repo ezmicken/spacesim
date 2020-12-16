@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  //"log"
+  "log"
 )
 
 type StateBuffer struct {
@@ -75,7 +75,8 @@ func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
     return sb.past[sb.wrap(sb.pastHead + 1 - (sb.currentSeq - s))]
   }
 
-  panic("cannot get historical transform from future")
+  log.Printf("Attempted to get state from future %v -- %v", seq, sb.currentSeq)
+  return sb.past[sb.pastHead]
 }
 
 func (sb *StateBuffer) GetCurrentSeq() uint16 {
