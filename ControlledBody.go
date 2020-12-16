@@ -52,6 +52,10 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.body.Vel = ht.Velocity
 }
 
+func (cb *ControlledBody) PushInput(seq uint16, input byte) {
+  cb.stateBuffer.PushInput(seq, input)
+}
+
 func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTransform {
   ht := cb.stateBuffer.Get(seq - 1)
 
