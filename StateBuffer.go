@@ -42,6 +42,7 @@ func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
 }
 
 func (sb *StateBuffer) PushInput(seq uint16, input byte) {
+  log.Printf("Input pushed for %v", seq)
   idx := sb.wrap(sb.futureHead + int(seq) - sb.currentSeq)
   sb.future[idx] = input
 
@@ -53,6 +54,7 @@ func (sb *StateBuffer) GetNextInput() byte {
   sb.futureHead = wrap(sb.futureHead + 1)
 
   sb.currentSeq++
+  log.Printf("StateBuffer advanced to %v", sb.currentSeq)
 
   return result
 }
