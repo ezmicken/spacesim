@@ -110,8 +110,6 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
 
   ht.Seq = seq
 
-  cb.previous = ht
-
   return ht
 }
 
@@ -146,6 +144,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
 
   // Commit to history.
   cb.stateBuffer.PushState(ht)
+  cb.previous = ht
 
   return
 }
