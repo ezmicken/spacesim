@@ -6,19 +6,24 @@ import(
 
 type StateBuffer struct {
   past        []HistoricalTransform
-  future      []byte
+  future      []Input
 
   size        int
   currentSeq  int
 
-  futureHead  int
   pastHead    int
+  futureHead  int
+}
+
+type Input struct {
+  Seq int
+  Data byte
 }
 
 func NewStateBuffer(size int) *StateBuffer {
   var sb StateBuffer
   sb.past = make([]HistoricalTransform, size)
-  sb.future = make([]byte, size)
+  sb.future = make([]Input, size)
   sb.size = size
   sb.currentSeq = 0
   sb.futureHead = 0
@@ -41,20 +46,31 @@ func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
   }
 }
 
-func (sb *StateBuffer) PushInput(seq uint16, input byte) {
-  log.Printf("Input pushed for %v", seq)
-  idx := sb.wrap(sb.futureHead + int(seq) - sb.currentSeq)
-  sb.future[idx] = input
+func (sb *StateBuffer) PushInput(seq uint16, data byte) {
+  s := int(seq)
+  var in Input
+  in.Seq = s
+  in.Data = data
 
-  // TODO: handle the case where offset is >= size
+  if s < sb.currentSeq {
+    // TODO: handle the case where input is in the past -- rollback
+    log.Printf("Input %v is in the past!", in)
+  }
+
+  idx := sb.wrap(sb.futureHead + s - sb.currentSeq)
+
+  sb.future[idx] = in
 }
 
-func (sb *StateBuffer) GetNextInput() byte {
+func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
-  sb.futureHead = wrap(sb.futureHead + 1)
 
+  if result.Seq != sb.currentSeq {
+    return Input{sb.currentSeq, byte(0)}
+  }
+
+  sb.futureHead = wrap(sb.futureHead + 1)
   sb.currentSeq++
-  log.Printf("StateBuffer advanced to %v", sb.currentSeq)
 
   return result
 }
@@ -76,7 +92,6 @@ func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
     return sb.past[sb.wrap(sb.pastHead + 1 - (sb.currentSeq - s))]
   }
 
-  log.Printf("Attempted to get state from future %v -- %v", seq, sb.currentSeq)
   return sb.past[sb.pastHead]
 }
 

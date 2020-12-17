@@ -117,10 +117,10 @@ func (cb *ControlledBody) Advance(seq uint16) {
   cb.body.Advance(seq)
 
   // get input from buffer
-  moveshoot := cb.stateBuffer.GetNextInput()
+  input := cb.stateBuffer.GetNextInput()
 
   // apply input to body
-  ht := cb.InputToState(seq, moveshoot)
+  ht := cb.InputToState(uint16(input.Seq), input.Data)
 
   // update collider based on new state
   cb.collider.Update(ht.Position, ht.Velocity)
