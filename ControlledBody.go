@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  "log"
+  //"log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -116,7 +116,6 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
 }
 
 func (cb *ControlledBody) Advance(seq uint16) {
-  log.Printf("ControlledBody advancing to %v", seq)
   cb.body.Advance(seq)
 
   // get input from buffer
