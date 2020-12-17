@@ -33,12 +33,11 @@ func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
   sb.currentSeq = s
 
   pt := ht
-  pt.Seq = ht.Seq - uint16(sb.size)
   sb.past[sb.pastHead] = pt
 
-  for i := 0; i < sb.size - 1; i++ {
-    pt.Seq++
-    sb.pastHead = wrap(sb.pastHead + 1)
+  for i := 0; i < sb.size; i++ {
+    pt.Seq--
+    sb.pastHead = wrap(sb.pastHead - 1)
     sb.past[sb.pastHead] = pt
   }
 }
