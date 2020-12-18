@@ -66,6 +66,7 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
 
 func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
+
   if result.Seq != sb.currentSeq {
     result = Input{sb.currentSeq, byte(0)}
   }
@@ -77,7 +78,7 @@ func (sb *StateBuffer) GetNextInput() Input {
 }
 
 func (sb *StateBuffer) PushState(ht HistoricalTransform) {
-  if ht.Seq != uint16(sb.currentSeq) {
+  if ht.Seq - 1 != sb.past[sb.pastHead].Seq {
     log.Printf("Pushed state is in the future %v -- %v", sb.past[sb.pastHead].Seq, ht.Seq - 1)
     panic("StateBuffer is out of sync!")
   }
