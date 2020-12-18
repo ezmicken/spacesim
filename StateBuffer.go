@@ -66,7 +66,7 @@ func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
   if result.Seq != sb.currentSeq {
-    return Input{sb.currentSeq - 1, byte(0)}
+    return Input{sb.currentSeq, byte(0)}
   }
 
   sb.futureHead = wrap(sb.futureHead + 1)
