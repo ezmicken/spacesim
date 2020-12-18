@@ -34,15 +34,17 @@ func NewStateBuffer(size int) *StateBuffer {
 
 func (sb *StateBuffer) Initialize(ht HistoricalTransform) {
   log.Printf("Initializing statebuffer @ %v", ht.Seq)
-  s := int(ht.Seq)
-  sb.currentSeq = s
+  sb.currentSeq = int(ht.Seq)
 
-  pt := ht
-  sb.past[sb.pastHead] = pt
+  i := sb.pastHead;
 
-  for i := 0; i < sb.size; i++ {
-    sb.pastHead = wrap(sb.pastHead - 1)
-    sb.past[sb.pastHead] = pt
+  for {
+    ht.Seq--
+    if sb.past[i].Seq == uint16(sb.currentSeq-1) {
+      break
+    }
+    sb.past[i] = ht
+    i = sb.wrap(i-1)
   }
 }
 
