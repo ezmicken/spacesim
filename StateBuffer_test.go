@@ -36,3 +36,25 @@ func TestInitialize(t *testing.T) {
     expectedVal--
   }
 }
+
+func TestGetNextInput(t *testing.T) {
+  var ht HistoricalTransform
+  ht.Seq = uint16(500)
+  ht.Angle = 0
+  ht.AngleDelta = 0
+  ht.Position = fixpoint.ZeroVec3Q16
+  ht.Velocity = fixpoint.ZeroVec3Q16
+  ht.VelocityDelta = fixpoint.ZeroVec3Q16
+
+  sb := NewStateBuffer(256)
+  sb.Initialize(ht)
+
+  sb.PushInput(uint16(501), byte(1))
+
+  i := sb.GetNextInput()
+  i = sb.GetNextInput()
+  if i.Seq != 501 {
+    t.Logf("%v is not %v", i.Seq, 501)
+    t.Fail()
+  }
+}
