@@ -67,7 +67,7 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
 func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
-  if result.Seq != sb.currentSeq {
+  if result.Seq != sb.currentSeq-1 {
     return Input{sb.currentSeq, byte(0)}
   }
 
