@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  //"log"
+  "log"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -66,6 +66,8 @@ func (cb *ControlledBody) PushInput(seq uint16, input byte) {
   if seq > cb.lastInputSeq {
     cb.stateBuffer.PushInput(seq, input)
     cb.lastInputSeq = seq
+  } else {
+    log.Printf("Redundant input @ %v", seq)
   }
 }
 
