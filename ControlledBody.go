@@ -23,6 +23,8 @@ type ControlledBody struct {
 
   delay             int
   previous          HistoricalTransform
+
+  lastInputSeq      uint16
 }
 
 var maxBlocks int = 128
@@ -43,6 +45,7 @@ func NewControlledBody(r, d int32, t, s fixpoint.Q16, sim *Simulation) (*Control
   cbod.blockHead = 0
   cbod.sim = sim
   cbod.delay = int(d)
+  cbod.lastInputSeq = 0
   zero := fixpoint.ZeroVec3Q16
   cbod.previous = HistoricalTransform{0, 0, 0, zero, zero, zero}
 
@@ -57,8 +60,13 @@ func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
   cb.previous = ht
 }
 
+// Reliable ordered UDP ensures that input is pushed in order.
+// Redundant pushes will silently fail.
 func (cb *ControlledBody) PushInput(seq uint16, input byte) {
-  cb.stateBuffer.PushInput(seq, input)
+  if seq > cb.lastInputSeq {
+    cb.stateBuffer.PushInput(seq, input)
+    cb.lastInputSeq = seq
+  }
 }
 
 func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTransform {
