@@ -68,7 +68,7 @@ func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
   if result.Seq != sb.currentSeq {
-    log.Printf("Assumed no input for %v", sb.currentSeq)
+    log.Printf("Assumed no input for %v (%v)", sb.currentSeq, result.Seq)
     result = Input{sb.currentSeq, byte(0)}
   }
 
