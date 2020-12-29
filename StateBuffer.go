@@ -75,6 +75,8 @@ func (sb *StateBuffer) GetNextInput() Input {
   sb.futureHead = wrap(sb.futureHead + 1)
   sb.currentSeq++
 
+  log.Printf("currentSeq is now %v, futurehead points at %v", sb.currentSeq, sb.future[sb.futureHead].Seq)
+
   return result
 }
 

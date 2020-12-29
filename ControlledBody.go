@@ -67,7 +67,7 @@ func (cb *ControlledBody) PushInput(seq uint16, input byte) {
     cb.stateBuffer.PushInput(seq, input)
     cb.lastInputSeq = seq
   } else {
-    log.Printf("Redundant input @ %v", seq)
+    //log.Printf("Redundant input @ %v", seq)
   }
 }
 
@@ -124,6 +124,7 @@ func (cb *ControlledBody) InputToState(seq uint16, moveshoot byte) HistoricalTra
 }
 
 func (cb *ControlledBody) Advance(seq uint16) {
+  log.Printf("Advancing to %v", seq)
   cb.body.Advance(seq)
 
   // get input from buffer
