@@ -58,7 +58,6 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
     // TODO: handle the case where input is in the past -- rollback
     log.Printf("Input %v is in the past!", in)
   }
-
   idx := sb.wrap(sb.futureHead + s - sb.currentSeq)
 
   sb.future[idx] = in
@@ -68,14 +67,11 @@ func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
   if result.Seq != sb.currentSeq {
-    log.Printf("Assumed no input for %v (%v)", sb.currentSeq, result.Seq)
     result = Input{sb.currentSeq, byte(0)}
   }
 
-  sb.futureHead = wrap(sb.futureHead + 1)
+  sb.futureHead = sb.wrap(sb.futureHead + 1)
   sb.currentSeq++
-
-  log.Printf("currentSeq is now %v, futurehead points at %v", sb.currentSeq, sb.future[sb.futureHead].Seq)
 
   return result
 }
