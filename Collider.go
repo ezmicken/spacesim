@@ -48,10 +48,28 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   closest.Normal = fixpoint.ZeroVec3Q16
   closest.Area = fixpoint.ZeroQ16
 
+  preferredNormal := fixpoint.ZeroVec3Q16
+
+  if (fixpoint.Abs(ht.Velocity.X).N > fixpoint.Abs(ht.Velocity.Y).N) {
+    if (ht.Velocity.Y.N > 0) {
+      preferredNormal.Y = fixpoint.OneQ16.Neg()
+    } else {
+      preferredNormal.Y = fixpoint.OneQ16
+    }
+  } else if ht.Velocity.X.N > 0 {
+    preferredNormal.X = fixpoint.OneQ16.Neg()
+  } else {
+    preferredNormal.X = fixpoint.OneQ16
+  }
+
   for i := 0; i < len(potentialCollisions); i++ {
     if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
-      if col.Area.N > closest.Area.N {
+      if closest.Area == fixpoint.ZeroQ16 {
+        closest = col
+      } else if col.Normal == preferredNormal && closest.Normal != preferredNormal {
+        closest = col
+      } else if col.Area.N > closest.Area.N {
         closest = col
       }
     }
