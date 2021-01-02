@@ -52,33 +52,33 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
       valid := true
-      // if col.Area.N > fixpoint.ZeroQ16.N {
-      //   if col.Normal.X != fixpoint.ZeroQ16 {
-      //     oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
-      //     twoAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W).Mul(fixpoint.TwoQ16)).N
-      //     for j := 0; j < len(potentialCollisions); j++ {
-      //       if potentialCollisions[j] != potentialCollisions[i] {
-      //         xmin := potentialCollisions[j].Min.X.N
-      //         if xmin == oneAway || xmin == twoAway {
-      //           valid = false
-      //           break;
-      //         }
-      //       }
-      //     }
-      //   } else if col.Normal.Y != fixpoint.ZeroQ16 {
-      //     oneAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H)).N
-      //     twoAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H).Mul(fixpoint.TwoQ16)).N
-      //     for j := 0; j < len(potentialCollisions); j++ {
-      //       if potentialCollisions[j] != potentialCollisions[i] {
-      //         ymin := potentialCollisions[j].Min.Y.N
-      //         if ymin == oneAway || ymin == twoAway {
-      //           valid = false
-      //           break;
-      //         }
-      //       }
-      //     }
-      //   }
-      // }
+      if col.Area.N > fixpoint.ZeroQ16.N {
+        if col.Normal.X != fixpoint.ZeroQ16 {
+          oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
+          twoAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W).Mul(fixpoint.TwoQ16)).N
+          for j := 0; j < len(potentialCollisions); j++ {
+            if potentialCollisions[j] != potentialCollisions[i] {
+              xmin := potentialCollisions[j].Min.X.N
+              if (xmin == oneAway || xmin == twoAway) && potentialCollisions[j].Min.Y == col.Block.Min.Y {
+                valid = false
+                break;
+              }
+            }
+          }
+        } else if col.Normal.Y != fixpoint.ZeroQ16 {
+          oneAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H)).N
+          twoAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H).Mul(fixpoint.TwoQ16)).N
+          for j := 0; j < len(potentialCollisions); j++ {
+            if potentialCollisions[j] != potentialCollisions[i] {
+              ymin := potentialCollisions[j].Min.Y.N
+              if (ymin == oneAway || ymin == twoAway) && potentialCollisions[j].Min.X == col.Block.Min.X {
+                valid = false
+                break;
+              }
+            }
+          }
+        }
+      }
       if valid && col.Area.N > closest.Area.N {
         closest = col
       }
@@ -92,10 +92,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   threshold := fixpoint.Q16FromFloat(0.001)
   if remainingTime.N > fixpoint.ZeroQ16.N {
     log.Printf("COLLISION: %v/%v", closest.Block.Min.X.Float(), closest.Block.Min.Y.Float())
-    log.Printf("%v", ht)
-    log.Printf("%v", potentialCollisions)
-    log.Printf("%v", c.Broad)
-    log.Printf("%v", c.Narrow)
     if fixpoint.Abs(closest.Normal.X).N > threshold.N {
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
