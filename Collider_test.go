@@ -8,9 +8,6 @@ import(
 // -32/2112
 func TestDiagonalCheck(t *testing.T) {
   collider := NewCollider(96, 48)
-  //collider.Broad = Rect{Point{fixpoint.Q16{-2208032}, fixpoint.Q16{139835948}}, Point{fixpoint.Q16{4083424},fixpoint.Q16{146127404}}, fixpoint.Q16{6291456}, fixpoint.Q16{6291456}}
-  //collider.Narrow = Rect{Point{fixpoint.Q16{-635168}, fixpoint.Q16{141408812}}, Point{fixpoint.Q16{2510560}, fixpoint.Q16{144554540}}, fixpoint.Q16{3145728}, fixpoint.Q16{3145728}}
-  //ht := HistoricalTransform{1958, 144, 0, fixpoint.Vec3Q16{fixpoint.Q16{937696}, fixpoint.Q16{142981676}, fixpoint.Q16{0}}, fixpoint.Vec3Q16{fixpoint.Q16{383570}, fixpoint.Q16{-1062780}, fixpoint.Q16{0}}, fixpoint.Vec3Q16{fixpoint.Q16{1151330}, fixpoint.Q16{1000}, fixpoint.Q16{0}}}
 
   ht := HistoricalTransform{1958, 144, 0, fixpoint.Vec3Q16{fixpoint.Q16{1881528}, fixpoint.Q16{142981676}, fixpoint.Q16{0}}, fixpoint.Vec3Q16{fixpoint.Q16{-767140}, fixpoint.Q16{-1062780}, fixpoint.Q16{0}}, fixpoint.Vec3Q16{fixpoint.Q16{620}, fixpoint.Q16{1000}, fixpoint.Q16{0}}}
   collider.Broad = Rect{Point{fixpoint.Q16{-1264200}, fixpoint.Q16{139835948}}, Point{fixpoint.Q16{5027256}, fixpoint.Q16{146127404}}, fixpoint.Q16{6291456}, fixpoint.Q16{6291456}}
@@ -137,6 +134,7 @@ func TestDiagonalCheck(t *testing.T) {
   }
 
   result := collider.Check(ht, potentialCollisions)
+
   // expect deflect in X axis
   if result.Velocity.X != ht.Velocity.X.Mul(fixpoint.HalfQ16).Neg() {
     t.Logf("SW Diagonal collision not resolved as expected.")
