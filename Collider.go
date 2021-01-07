@@ -119,6 +119,12 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     ht.Velocity = vel
 
     c.Update(ht.Position, ht.Velocity)
+  } else if closest.Area.N > fixpoint.ZeroQ16.N {
+    log.Printf("TUNNEL")
+    log.Printf("%v", ht)
+    log.Printf("%v", potentialCollisions)
+    log.Printf("%v", c.Broad)
+    log.Printf("%v", c.Narrow)
   }
 
   return ht
