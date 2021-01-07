@@ -16,6 +16,8 @@ type Rect struct {
   H   fixpoint.Q16
 }
 
+var InvalidRect Rect = NewRect(fixpoint.OneQ16.Neg(), fixpoint.OneQ16.Neg(), fixpoint.OneQ16.Neg(), fixpoint.OneQ16.Neg())
+
 func NewRect(x, y, w, h fixpoint.Q16) Rect {
   var r Rect
   r.Min = Point{X: x, Y: y}
