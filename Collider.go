@@ -16,10 +16,11 @@ type Collider struct {
 }
 
 type collision struct {
-  Time    fixpoint.Q16
-  Normal  fixpoint.Vec3Q16
-  Area    fixpoint.Q16
-  Block   Rect
+  Time      fixpoint.Q16
+  Time2     fixpoint.Q16
+  Normal    fixpoint.Vec3Q16
+  Area      fixpoint.Q16
+  Block     Rect
 }
 
 func NewCollider(broadSize, narrowSize int32) *Collider {
@@ -96,6 +97,10 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
         vel.X = fixpoint.ZeroQ16
+        if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
+          pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time2))
+          vel.Y = fixpoint.ZeroQ16
+        }
       } else {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
         vel.X = vel.X.Mul(fixpoint.HalfQ16).Neg()
@@ -107,6 +112,10 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
       if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
         pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time))
         vel.Y = fixpoint.ZeroQ16
+        if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
+          pos.X = pos.X.Add(vel.X.Mul(closest.Time2))
+          vel.X = fixpoint.ZeroQ16
+        }
       } else {
         pos.Y = pos.Y.Add(vel.Y.Mul(closest.Time))
         vel.Y = vel.Y.Mul(fixpoint.HalfQ16).Neg()
@@ -119,12 +128,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     ht.Velocity = vel
 
     c.Update(ht.Position, ht.Velocity)
-  } else if closest.Area.N > fixpoint.ZeroQ16.N {
-    log.Printf("TUNNEL")
-    log.Printf("%v", ht)
-    log.Printf("%v", potentialCollisions)
-    log.Printf("%v", c.Broad)
-    log.Printf("%v", c.Narrow)
   }
 
   return ht
@@ -175,6 +178,13 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     tyExit = dyExit.Div(velocity.Y)
   }
 
+  if txEntry.N > tyEntry.N {
+    result.Time = txEntry
+    result.Time2 = tyEntry
+  } else {
+    result.Time = tyEntry
+    result.Time2 = txEntry
+  }
   entryTime := fixpoint.Max(txEntry, tyEntry)
   exitTime := fixpoint.Min(txExit, tyExit)
 
@@ -184,9 +194,9 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
 
   if exiting || negativeEntry || futureEntry {
     result.Time = fixpoint.OneQ16
+    result.Time2 = fixpoint.OneQ16
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
-    result.Time = entryTime
     movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Min.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
     result.Area = RectOverlap(movedBody, block)
     if txEntry.N > tyEntry.N {
