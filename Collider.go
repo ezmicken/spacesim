@@ -124,12 +124,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     ht.Velocity = vel
 
     c.Update(ht.Position, ht.Velocity)
-  } else if closest.Area.N > fixpoint.ZeroQ16.N {
-    log.Printf("TUNNEL")
-    log.Printf("%v", ht)
-    log.Printf("%v", potentialCollisions)
-    log.Printf("%v", c.Broad)
-    log.Printf("%v", c.Narrow)
   }
 
   return ht
@@ -187,7 +181,11 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
   futureEntry := txEntry.N > fixpoint.OneQ16.N || tyEntry.N > fixpoint.OneQ16.N
 
-  if exiting || negativeEntry || futureEntry {
+  if negativeEntry {
+    log.Printf("Negative entry! %v/%v %v/%v %v/%v", block.Min.X.Float(), block.Min.Y.Float(), txEntry.Float(), dxEntry.Float(), tyEntry.Float(), dyEntry.Float())
+    result.Time = fixpoint.OneQ16
+    result.Normal = fixpoint.ZeroVec3Q16
+  } else if exiting || futureEntry {
     result.Time = fixpoint.OneQ16
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
