@@ -180,25 +180,8 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   exiting := entryTime.N > exitTime.N
   negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
   futureEntry := txEntry.N > fixpoint.OneQ16.N || tyEntry.N > fixpoint.OneQ16.N
-  alreadyX := txEntry.N < fixpoint.ZeroQ16.N && txEntry.N > fixpoint.OneQ16.Neg().N
-  alreadyY := tyEntry.N < fixpoint.ZeroQ16.N && tyEntry.N > fixpoint.OneQ16.Neg().N
-  quarter := fixpoint.Q16FromFloat(0.25)
 
-  if alreadyX && dxEntry.N < quarter.N && dxEntry.N > quarter.Neg().N {
-    result.Time = txEntry.Neg()
-    if velocity.X.N < 0 {
-      result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
-    } else {
-      result.Normal = fixpoint.Vec3Q16FromFloat(-1.0, 0.0, 0.0)
-    }
-  } else if alreadyY && dyEntry.N < quarter.N && dyEntry.N > quarter.Neg().N {
-    result.Time = tyEntry.Neg()
-    if velocity.Y.N < 0 {
-      result.Normal = fixpoint.Vec3Q16FromFloat(0.0, 1.0, 0.0)
-    } else {
-      result.Normal = fixpoint.Vec3Q16FromFloat(0.0, -1.0, 0.0)
-    }
-  } else if (!alreadyX && !alreadyY) && (exiting || negativeEntry || futureEntry) {
+  if exiting || negativeEntry || futureEntry {
     result.Time = fixpoint.OneQ16
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
