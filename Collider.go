@@ -185,15 +185,15 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   quarter := fixpoint.Q16FromFloat(0.25)
 
   if alreadyX && dxEntry.N < quarter.N && dxEntry.N > quarter.Neg().N {
-    result.Time = dxEntry.Neg()
-    if dxEntry.N < 0 {
+    result.Time = txEntry.Neg()
+    if velocity.X.N < 0 {
       result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
     } else {
       result.Normal = fixpoint.Vec3Q16FromFloat(-1.0, 0.0, 0.0)
     }
   } else if alreadyY && dyEntry.N < quarter.N && dyEntry.N > quarter.Neg().N {
-    result.Time = dyEntry.Neg()
-    if dyEntry.N < 0 {
+    result.Time = tyEntry.Neg()
+    if velocity.Y.N < 0 {
       result.Normal = fixpoint.Vec3Q16FromFloat(0.0, 1.0, 0.0)
     } else {
       result.Normal = fixpoint.Vec3Q16FromFloat(0.0, -1.0, 0.0)
@@ -206,13 +206,13 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Min.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
     result.Area = RectOverlap(movedBody, block)
     if txEntry.N > tyEntry.N {
-      if dxEntry.N < 0 {
+      if velocity.X.N < 0 {
         result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
       } else {
         result.Normal = fixpoint.Vec3Q16FromFloat(-1.0, 0.0, 0.0)
       }
     } else {
-      if dyEntry.N < 0 {
+      if velocity.Y.N < 0 {
         result.Normal = fixpoint.Vec3Q16FromFloat(0.0, 1.0, 0.0)
       } else {
         result.Normal = fixpoint.Vec3Q16FromFloat(0.0, -1.0, 0.0)

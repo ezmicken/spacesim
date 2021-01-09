@@ -138,7 +138,7 @@ func (cb *ControlledBody) Advance(seq uint16) {
   cc := 1
   check2 := ht
   check := cb.collider.Check(ht, cb.blocks)
-  for check != check2 && cc <= 8 {
+  for check != check2 && cc <= 4 {
     check2 = check
     check = cb.collider.Check(check, cb.blocks)
     cc++
