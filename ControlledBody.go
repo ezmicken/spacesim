@@ -144,8 +144,6 @@ func (cb *ControlledBody) Advance(seq uint16) {
     cc++
   }
 
-  cb.collider.PrevBlock = InvalidRect
-
   if ht != check {
     ht = check
   }

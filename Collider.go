@@ -11,7 +11,6 @@ type Collider struct {
   halfBroadSize   fixpoint.Q16
   halfNarrowSize  fixpoint.Q16
 
-  PrevBlock       Rect // The last block that was tested for collision.
   Broad           Rect
   Narrow          Rect
 }
@@ -50,8 +49,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   closest.Area = fixpoint.ZeroQ16
 
   for i := 0; i < len(potentialCollisions); i++ {
-    // skip blocks we already collided with this frame
-    if potentialCollisions[i] == c.PrevBlock { continue; }
     if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
       valid := true
@@ -88,8 +85,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
     }
   }
 
-  c.PrevBlock = closest.Block
-
   pos := ht.Position
   vel := ht.Velocity
 
@@ -104,7 +99,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
       } else {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
         vel.X = vel.X.Mul(fixpoint.HalfQ16).Neg()
-        pos.X = pos.X.Add(vel.Y.Mul(remainingTime))
+        pos.X = pos.X.Add(vel.X.Mul(remainingTime))
       }
     }
 
@@ -179,7 +174,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
 
   exiting := entryTime.N > exitTime.N
   negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
-  futureEntry := txEntry.N > fixpoint.OneQ16.N || tyEntry.N > fixpoint.OneQ16.N
+  futureEntry := txEntry.N >= fixpoint.OneQ16.N || tyEntry.N >= fixpoint.OneQ16.N
 
   if exiting || negativeEntry || futureEntry {
     result.Time = fixpoint.OneQ16
