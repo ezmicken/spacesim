@@ -2,6 +2,7 @@ package spacesim
 
 import (
   "sync"
+  "encoding/binary"
   "github.com/ezmicken/fixpoint"
 )
 
@@ -108,4 +109,54 @@ func (s *Simulation) Advance(seq int) {
     }
   }
   s.allBodies = filteredBodies
+}
+
+// SEQ                  | uint16
+// ControlledBody count | byte
+// ControlledBody list  | ------
+//   - id               | uint16 |
+//   - angle            | uint16 |
+//   - angle delta      | uint16 |
+//   - position X       | int32  |
+//   - position Y       | int32  |
+//   - velocity X       | int32  |--- 31
+//   - velocity Y       | int32  |
+//   - delta velocity X | int32  |
+//   - delta velocity Y | int32  |
+//   - input count      | byte   |
+//   - inputs           | -----
+//     - input          | byte
+//     ...
+// ...
+// Body count           | uint16
+// Body list            | -----
+//   - id               | uint16 |
+//   - position X       | int32  |
+//   - position Y       | int32  |
+//   - velocity X       | int32  |--- 26
+//   - velocity Y       | int32  |
+//   - delta velocity X | int32  |
+//   - delta velocity Y | int32  |
+// ...
+func (s *Simulation) SerializeState(data []byte, head int) int {
+  binary.LittleEndian.PutUint16(data[head:head+2], s.seq)
+  head += 2
+  cbCountIdx := head
+  head += 1
+  cbCount := 0
+  s.controlledBodies.Range(func(key, value interface{}) bool {
+    binary.LittleEndian.PutUint16(data[head:head+2], key.(uint16))
+    head += 2
+    b := value.(*ControlledBody)
+    head = b.SerializeState(data, head)
+    cbCount++
+    return true
+  })
+  data[cbCountIdx] = byte(cbCount)
+
+  // TODO: dynamic bodies.
+  data[head] = byte(0)
+  head++
+
+  return head
 }

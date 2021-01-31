@@ -5,14 +5,17 @@ import(
   "github.com/ezmicken/fixpoint"
 )
 
+var randomHT HistoricalTransform = HistoricalTransform {
+  Seq: uint16(500),
+  Angle: 0,
+  AngleDelta: 0,
+  Position: fixpoint.ZeroVec3Q16,
+  Velocity: fixpoint.ZeroVec3Q16,
+  VelocityDelta: fixpoint.ZeroVec3Q16,
+}
+
 func TestInitialize(t *testing.T) {
-  var ht HistoricalTransform
-  ht.Seq = uint16(500)
-  ht.Angle = 0
-  ht.AngleDelta = 0
-  ht.Position = fixpoint.ZeroVec3Q16
-  ht.Velocity = fixpoint.ZeroVec3Q16
-  ht.VelocityDelta = fixpoint.ZeroVec3Q16
+  ht := randomHT
 
   sb := NewStateBuffer(256)
   sb.Initialize(ht)
@@ -38,13 +41,7 @@ func TestInitialize(t *testing.T) {
 }
 
 func TestGetNextInput(t *testing.T) {
-  var ht HistoricalTransform
-  ht.Seq = uint16(500)
-  ht.Angle = 0
-  ht.AngleDelta = 0
-  ht.Position = fixpoint.ZeroVec3Q16
-  ht.Velocity = fixpoint.ZeroVec3Q16
-  ht.VelocityDelta = fixpoint.ZeroVec3Q16
+  ht := randomHT
 
   sb := NewStateBuffer(256)
   sb.Initialize(ht)

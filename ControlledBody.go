@@ -199,3 +199,7 @@ func wrap(i int) int {
 func (cb *ControlledBody) GetBody() *Body {
   return cb.body
 }
+
+func (cb *ControlledBody) SerializeState(data []byte, head int) int {
+  return cb.stateBuffer.Serialize(data, head)
+}

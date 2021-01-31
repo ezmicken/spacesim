@@ -1,6 +1,7 @@
 package spacesim
 
 import(
+  "encoding/binary"
   "log"
 )
 
@@ -98,6 +99,46 @@ func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
 
 func (sb *StateBuffer) GetCurrentSeq() uint16 {
   return uint16(sb.currentSeq)
+}
+
+func (sb *StateBuffer) Serialize(data []byte, head int) int {
+  ht := sb.past[sb.pastHead]
+  binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.Angle))
+  head += 2
+  binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.AngleDelta))
+  head += 2
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Position.X.N))
+  head += 4
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Position.Y.N))
+  head += 4
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Velocity.X.N))
+  head += 4
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Velocity.Y.N))
+  head += 4
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.VelocityDelta.X.N))
+  head += 4
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.VelocityDelta.Y.N))
+  head += 4
+
+  // make space for input count
+  inputCountIdx := head
+  head += 1
+
+  seq := int(ht.Seq)
+  i := sb.futureHead
+  count := 0
+  for {
+    if sb.future[i].Seq != seq + count + 1 {
+      break
+    }
+    data[head] = sb.future[i].Data
+    head++
+    count++
+    i = sb.wrap(i + 1)
+  }
+
+  data[inputCountIdx] = byte(count)
+  return head
 }
 
 func (sb *StateBuffer) wrap(idx int) int {
