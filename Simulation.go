@@ -159,7 +159,7 @@ func (s *Simulation) SerializeState(data []byte, head int) int {
   // TODO: dynamic bodies.
   data[head] = byte(0)
   head++
-  binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx))
+  binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx + 2))
 
   return head
 }
