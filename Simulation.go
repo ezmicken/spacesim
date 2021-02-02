@@ -139,6 +139,8 @@ func (s *Simulation) Advance(seq int) {
 //   - delta velocity Y | int32  |
 // ...
 func (s *Simulation) SerializeState(data []byte, head int) int {
+  dataSizeIdx := head
+  head += 2
   binary.LittleEndian.PutUint16(data[head:head+2], s.seq)
   head += 2
   cbCountIdx := head
@@ -157,6 +159,7 @@ func (s *Simulation) SerializeState(data []byte, head int) int {
   // TODO: dynamic bodies.
   data[head] = byte(0)
   head++
+  binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx))
 
   return head
 }

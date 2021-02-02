@@ -30,7 +30,7 @@ func TestSerializeState(t *testing.T) {
   head := sim.SerializeState(data, 0)
 
   // expect 47 bytes of data
-  if head != 47 {
+  if head != 49 {
     t.Logf("head was not 47, it was %v", head)
     t.Fail()
   }
@@ -66,7 +66,7 @@ func TestSerializeState2(t *testing.T) {
   head := sim.SerializeState(data, 0)
 
   // expect 90 bytes of data
-  if head != 90 {
+  if head != 92 {
     t.Logf("head was not 90, it was %v", head)
     t.Fail()
   }
