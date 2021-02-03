@@ -118,7 +118,6 @@ func (s *Simulation) Advance(seq int) {
   s.allBodies = filteredBodies
 }
 
-// SEQ                  | uint16
 // ControlledBody count | byte
 // ControlledBody list  | ------
 //   - id               | uint16 |
@@ -147,8 +146,6 @@ func (s *Simulation) Advance(seq int) {
 // ...
 func (s *Simulation) SerializeState(data []byte, head int) int {
   dataSizeIdx := head
-  head += 2
-  binary.LittleEndian.PutUint16(data[head:head+2], s.seq)
   head += 2
   cbCountIdx := head
   head += 1
