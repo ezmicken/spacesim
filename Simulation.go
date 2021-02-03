@@ -31,7 +31,7 @@ func NewSimulation(ts, scale fixpoint.Q16) *Simulation {
   return &s
 }
 
-func Reset() {
+func (s *Simulation) Reset() {
   s.seq = 0
   s.allBodies = []*Body{}
   s.controlledBodies = sync.Map{}
@@ -131,7 +131,7 @@ func (s *Simulation) Advance(seq int) {
 //   - delta velocity X | int32  |
 //   - delta velocity Y | int32  |
 //   - input count      | byte   |
-//   - inputs           | -----
+//   Input list         | -----
 //     - input          | byte
 //     ...
 // ...
