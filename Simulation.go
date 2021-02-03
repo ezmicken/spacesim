@@ -31,6 +31,13 @@ func NewSimulation(ts, scale fixpoint.Q16) *Simulation {
   return &s
 }
 
+func Reset() {
+  s.seq = 0
+  s.allBodies = []*Body{}
+  s.controlledBodies = sync.Map{}
+  s.bodiesById = sync.Map{}
+}
+
 func (s *Simulation) GetControlledBody(id uint16) *ControlledBody {
   cb, ok := s.controlledBodies.Load(id)
   if ok {
