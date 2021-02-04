@@ -71,3 +71,31 @@ func TestSerializeState2(t *testing.T) {
     t.Fail()
   }
 }
+
+// This runs ReplaceControlledBody instead of Add.
+func TestSerializeState3(t *testing.T) {
+  sim := NewSimulation(ts, scale)
+  id, err := uuint16.Rent()
+  if err != nil {
+    t.Log("uuint16.Rent failed...")
+    t.Fail()
+  }
+
+  sim.ReplaceControlledBody(id, uint16(0), uint16(0), int32(1), int32(2), int32(3), int32(4), int32(5), int32(6))
+  cb := sim.GetControlledBody(id)
+
+  for i := 0; i < 100; i++ {
+    cb.PushInput(uint16(i + 12), byte(4))
+    sim.AdvanceControlledBody(id, uint16(i))
+    sim.Advance(i)
+  }
+
+  data := make([]byte, 1024)
+  head := sim.SerializeState(data, 0)
+
+  // expect 47 bytes of data
+  if head != 47 {
+    t.Logf("head was not 47, it was %v", head)
+    t.Fail()
+  }
+}
