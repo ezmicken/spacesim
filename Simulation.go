@@ -128,7 +128,7 @@ func (s *Simulation) ReplaceControlledBody(id, angle, angleDelta uint16, x, y, v
   ht.Seq = s.seq
   ht.Angle = int32(angle)
   ht.AngleDelta = int32(angleDelta)
-  ht.Position = fixpoint.Vec3Q16{fixpoint.Q16{x}, fixpoint.Q16{0}, fixpoint.ZeroQ16}
+  ht.Position = fixpoint.Vec3Q16{fixpoint.Q16{x}, fixpoint.Q16{y}, fixpoint.ZeroQ16}
   ht.Velocity = fixpoint.Vec3Q16{fixpoint.Q16{vx}, fixpoint.Q16{vy}, fixpoint.ZeroQ16}
   ht.VelocityDelta = fixpoint.Vec3Q16{fixpoint.Q16{dvx}, fixpoint.Q16{dvy}, fixpoint.ZeroQ16}
 
@@ -137,6 +137,7 @@ func (s *Simulation) ReplaceControlledBody(id, angle, angleDelta uint16, x, y, v
   return
 }
 
+// Data size            | uint16 |
 // ControlledBody count | byte
 // ControlledBody list  | ------
 //   - id               | uint16 |
