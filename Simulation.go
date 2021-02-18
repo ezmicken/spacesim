@@ -2,6 +2,7 @@ package spacesim
 
 import (
   "sync"
+  "log"
   "encoding/binary"
   "github.com/ezmicken/fixpoint"
 )
@@ -118,11 +119,20 @@ func (s *Simulation) Advance(seq int) {
   s.allBodies = filteredBodies
 }
 
-func (s *Simulation) ReplaceControlledBody(id, angle, angleDelta uint16, x, y, vx, vy, dvx, dvy int32) {
-  cb := NewControlledBody(rotationSpeed, 0, thrust, maxSpeed, s)
-  s.allBodies = append(s.allBodies, cb.GetBody())
-  s.controlledBodies.Store(id, cb)
-  s.bodiesById.Store(id, cb.GetBody())
+func (s *Simulation) Rewind(seq uint16) {
+  s.controlledBodies.Range(func(key, value interface{}) bool {
+    b := value.(*ControlledBody)
+    b.Rewind(seq)
+    return true
+  })
+}
+
+func (s *Simulation) OverwriteState(seq, id, angle, angleDelta uint16, x, y, vx, vy, dvx, dvy int32) {
+  cb := s.GetControlledBody(id)
+  if cb == nil {
+    log.Printf("Attempted to rewind body that doesn't exist.")
+    return
+  }
 
   var ht HistoricalTransform
   ht.Seq = s.seq
@@ -132,12 +142,21 @@ func (s *Simulation) ReplaceControlledBody(id, angle, angleDelta uint16, x, y, v
   ht.Velocity = fixpoint.Vec3Q16{fixpoint.Q16{vx}, fixpoint.Q16{vy}, fixpoint.ZeroQ16}
   ht.VelocityDelta = fixpoint.Vec3Q16{fixpoint.Q16{dvx}, fixpoint.Q16{dvy}, fixpoint.ZeroQ16}
 
-  cb.Initialize(ht)
-
   return
 }
 
-// Data size            | uint16 |
+func (s *Simulation) PeekState(id uint16) HistoricalTransform {
+  cb := s.GetControlledBody(id)
+  if cb == nil {
+    log.Printf("Attempted to peek state of body that doesn't exist.")
+    return InvalidHistoricalTransform
+  }
+
+  return cb.PeekState()
+}
+
+// - size               | uint16 |
+// - seq                | uint16 |
 // ControlledBody count | byte
 // ControlledBody list  | ------
 //   - id               | uint16 |
