@@ -4,6 +4,13 @@ import(
   "github.com/ezmicken/fixpoint"
 )
 
+func wrap(i int) int {
+  for i >= maxBlocks { i -= maxBlocks }
+  for i < 0 { i += maxBlocks }
+
+  return i
+}
+
 type ControlledBody struct {
   inputSeq          uint16
 
@@ -189,11 +196,16 @@ func (cb *ControlledBody) AddBlock(x, y int32) {
   cb.blockHead = wrap(cb.blockHead)
 }
 
-func wrap(i int) int {
-  for i >= maxBlocks { i -= maxBlocks }
-  for i < 0 { i += maxBlocks }
+func (cb *ControlledBody) OverwriteState(ht HistoricalTransform) {
+  cb.stateBuffer.OverwriteState(ht)
+}
 
-  return i
+func (cb *ControlledBody) PeekState() HistoricalTransform {
+  return cb.stateBuffer.PeekState()
+}
+
+func (cb *ControlledBody) Rewind(seq uint16) {
+  cb.stateBuffer.Rewind(seq)
 }
 
 func (cb *ControlledBody) GetBody() *Body {
