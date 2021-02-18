@@ -13,3 +13,11 @@ type HistoricalTransform struct {
   VelocityDelta fixpoint.Vec3Q16
 }
 
+var InvalidHistoricalTransform HistoricalTransform = HistoricalTransform{
+  uint16(0),
+  int32(-1),
+  int32(-1),
+  fixpoint.ZeroVec3Q16,
+  fixpoint.ZeroVec3Q16,
+  fixpoint.ZeroVec3Q16,
+}
