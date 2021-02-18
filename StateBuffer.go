@@ -10,10 +10,10 @@ type StateBuffer struct {
   future      []Input
 
   size        int
-  currentSeq  int
 
-  pastHead    int
-  futureHead  int
+  currentSeq  int
+  pastHead    int // could be anything, likely to be close to currentSeq
+  futureHead  int // should be currentSeq
 }
 
 type Input struct {
@@ -64,11 +64,26 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
   sb.future[idx] = in
 }
 
+func (sb *StateBuffer) Rewind(seq uint16) {
+  if int(seq) > sb.currentSeq {
+    log.Printf("Cannot rewind to the future.")
+    return
+  }
+  if int(seq) == sb.currentSeq  {
+    return
+  }
+
+  sb.futureHead = sb.wrap(sb.futureHead - (sb.currentSeq - int(seq)))
+  sb.pastHead = sb.wrap(sb.pastHead - (int(sb.past[sb.pastHead].Seq) - int(seq)) - 1)
+  sb.currentSeq = int(seq)
+}
+
 func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
   if result.Seq != sb.currentSeq {
     result = Input{sb.currentSeq, byte(0)}
+    sb.future[sb.futureHead] = result
   }
 
   sb.futureHead = sb.wrap(sb.futureHead + 1)
@@ -78,13 +93,23 @@ func (sb *StateBuffer) GetNextInput() Input {
 }
 
 func (sb *StateBuffer) PushState(ht HistoricalTransform) {
-  if ht.Seq - 1 != sb.past[sb.pastHead].Seq {
+  current := sb.past[sb.pastHead].Seq
+  rolledOver := (current == 65535 && ht.Seq - 1 == 0)
+  if ht.Seq - 1 != current && !rolledOver {
     log.Printf("Pushed state is in the future %v -- %v", sb.past[sb.pastHead].Seq, ht.Seq - 1)
     panic("StateBuffer is out of sync!")
   }
 
   sb.pastHead = sb.wrap(sb.pastHead + 1)
   sb.past[sb.pastHead] = ht
+}
+
+func (sb *StateBuffer) OverwriteState(ht HistoricalTransform) {
+  sb.past[sb.pastHead] = ht
+}
+
+func (sb *StateBuffer) PeekState() HistoricalTransform {
+  return sb.past[sb.pastHead]
 }
 
 func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
