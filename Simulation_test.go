@@ -2,15 +2,11 @@ package spacesim
 
 import(
   "testing"
-  "github.com/ezmicken/fixpoint"
   "github.com/ezmicken/uuint16"
 )
 
-var ts fixpoint.Q16 = fixpoint.Q16FromInt32(33)
-var scale fixpoint.Q16 = fixpoint.Q16FromInt32(32)
-
 func TestSerializeState(t *testing.T) {
-  sim := NewSimulation(ts, scale)
+  sim := NewSimulation(timestep, scale)
   id, err := uuint16.Rent()
   if err != nil {
     t.Log("uuint16.Rent failed...")
@@ -36,8 +32,10 @@ func TestSerializeState(t *testing.T) {
   }
 }
 
-func TestSerializeState2(t *testing.T) {
-  sim := NewSimulation(ts, scale)
+func TestIntegration(t *testing.T) {
+  sim := NewSimulation(timestep, scale)
+
+  // Rent two ids
   id, err := uuint16.Rent()
   if err != nil {
     t.Log("uuint16.Rent failed...")
@@ -49,11 +47,13 @@ func TestSerializeState2(t *testing.T) {
     t.Fail()
   }
 
+  // Add two bodies
   sim.AddControlledBody(id, int32(1234), int32(4321), int32(1))
   sim.AddControlledBody(id2, int32(4321), int32(1234), int32(1))
   cb := sim.GetControlledBody(id)
   cb2 := sim.GetControlledBody(id2)
 
+  // Apply input to two bodies and advance
   for i := 0; i < 100; i++ {
     cb.PushInput(uint16(i + 12), byte(4))
     cb2.PushInput(uint16(i + 12), byte(2))
@@ -62,6 +62,7 @@ func TestSerializeState2(t *testing.T) {
     sim.Advance(i)
   }
 
+  // Serialize the state
   data := make([]byte, 1024)
   head := sim.SerializeState(data, 0)
 
@@ -70,32 +71,33 @@ func TestSerializeState2(t *testing.T) {
     t.Logf("head was not 90, it was %v", head)
     t.Fail()
   }
-}
 
-// This runs ReplaceControlledBody instead of Add.
-func TestSerializeState3(t *testing.T) {
-  sim := NewSimulation(ts, scale)
-  id, err := uuint16.Rent()
-  if err != nil {
-    t.Log("uuint16.Rent failed...")
-    t.Fail()
-  }
+  ht := randomHT
+  ht.Seq = 0
+  // Rewind and overwrite state of both bodies.
+  sim.Rewind(ht.Seq + 1)
 
-  sim.ReplaceControlledBody(id, uint16(0), uint16(0), int32(1), int32(2), int32(3), int32(4), int32(5), int32(6))
-  cb := sim.GetControlledBody(id)
+  sim.OverwriteState(ht.Seq, id, uint16(0), uint16(0), int32(0), int32(0), int32(0), int32(0), int32(0), int32(0))
+  sim.OverwriteState(ht.Seq, id2, uint16(0), uint16(0), int32(0), int32(0), int32(0), int32(0), int32(0), int32(0))
 
   for i := 0; i < 100; i++ {
-    cb.PushInput(uint16(i + 12), byte(4))
     sim.AdvanceControlledBody(id, uint16(i))
+    sim.AdvanceControlledBody(id2, uint16(i))
     sim.Advance(i)
   }
 
-  data := make([]byte, 1024)
-  head := sim.SerializeState(data, 0)
+  // Get the next state
+  cb1state := sim.PeekState(id)
+  cb2state := sim.PeekState(id2)
 
-  // expect 47 bytes of data
-  if head != 47 {
-    t.Logf("head was not 47, it was %v", head)
+  // Expect to have rewound to the correct seq
+  if cb1state.Seq != ht.Seq + 100 {
+    t.Logf("rewind failed cb1 %v was not %v", cb1state.Seq, ht.Seq)
+    t.Fail()
+  }
+
+  if cb2state.Seq != ht.Seq + 100 {
+    t.Logf("rewind failed cb2 %v was not %v", cb1state.Seq, ht.Seq)
     t.Fail()
   }
 }

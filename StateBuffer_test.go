@@ -2,17 +2,7 @@ package spacesim
 
 import(
   "testing"
-  "github.com/ezmicken/fixpoint"
 )
-
-var randomHT HistoricalTransform = HistoricalTransform {
-  Seq: uint16(500),
-  Angle: 0,
-  AngleDelta: 0,
-  Position: fixpoint.ZeroVec3Q16,
-  Velocity: fixpoint.ZeroVec3Q16,
-  VelocityDelta: fixpoint.ZeroVec3Q16,
-}
 
 func TestInitialize(t *testing.T) {
   ht := randomHT
