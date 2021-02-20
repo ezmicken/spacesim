@@ -55,7 +55,7 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
   in.Seq = s
   in.Data = data
 
-  if s < sb.currentSeq {
+  if seqGreaterThan(sb.currentSeq, s) {
     // TODO: handle the case where input is in the past -- rollback
     log.Printf("Input %v is in the past!", in)
   }
@@ -65,7 +65,7 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
 }
 
 func (sb *StateBuffer) Rewind(seq uint16) {
-  if int(seq) > sb.currentSeq {
+  if seqGreaterThan(int(seq), sb.currentSeq) {
     log.Printf("Cannot rewind to the future.")
     return
   }
@@ -115,7 +115,7 @@ func (sb *StateBuffer) PeekState() HistoricalTransform {
 func (sb *StateBuffer) Get(seq uint16) HistoricalTransform {
   s := int(seq)
 
-  if s < sb.currentSeq {
+  if seqGreaterThan(sb.currentSeq, s) {
     return sb.past[sb.wrap(sb.pastHead + 1 - (sb.currentSeq - s))]
   }
 
@@ -174,4 +174,8 @@ func (sb *StateBuffer) wrap(idx int) int {
     idx += sb.size
   }
   return idx
+}
+
+func seqGreaterThan(s1, s2 int) bool {
+  return ((s1 > s2) && (s1 - s2 <= 32768)) || ((s1 < s2) && s2 - s1 > 32768)
 }
