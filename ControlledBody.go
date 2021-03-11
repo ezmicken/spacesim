@@ -208,6 +208,10 @@ func (cb *ControlledBody) Rewind(seq uint16) {
   cb.stateBuffer.Rewind(seq)
 }
 
+func (cb *ControlledBody) ClearInput() {
+  cb.stateBuffer.ClearInput()
+}
+
 func (cb *ControlledBody) GetBody() *Body {
   return cb.body
 }

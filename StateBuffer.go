@@ -78,6 +78,12 @@ func (sb *StateBuffer) Rewind(seq uint16) {
   sb.currentSeq = int(seq)
 }
 
+func (sb *StateBuffer) ClearInput() {
+  for i := 0; i < sb.size; i = sb.wrap(i+1) {
+    sb.future[i].Data = byte(0)
+  }
+}
+
 func (sb *StateBuffer) GetNextInput() Input {
   result := sb.future[sb.futureHead]
 
