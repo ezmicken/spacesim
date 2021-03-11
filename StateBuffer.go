@@ -79,7 +79,7 @@ func (sb *StateBuffer) Rewind(seq uint16) {
 }
 
 func (sb *StateBuffer) ClearInput() {
-  for i := 0; i < sb.size; i = sb.wrap(i+1) {
+  for i := 0; i < sb.size; i++ {
     sb.future[i].Data = byte(0)
   }
 }
