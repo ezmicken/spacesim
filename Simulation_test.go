@@ -80,7 +80,7 @@ func TestIntegration(t *testing.T) {
   sim.OverwriteState(ht.Seq, id, uint16(0), uint16(0), int32(0), int32(0), int32(0), int32(0), int32(0), int32(0))
   sim.OverwriteState(ht.Seq, id2, uint16(0), uint16(0), int32(0), int32(0), int32(0), int32(0), int32(0), int32(0))
 
-  for i := 0; i < 100; i++ {
+  for i := int(ht.Seq + 1); i < 101; i++ {
     sim.AdvanceControlledBody(id, uint16(i))
     sim.AdvanceControlledBody(id2, uint16(i))
     sim.Advance(i)
