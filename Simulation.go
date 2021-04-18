@@ -58,7 +58,7 @@ func (s *Simulation) GetBody(id uint16) *Body {
 }
 
 func (s *Simulation) AddControlledBody(id uint16, x, y, d int32) {
-  cb := NewControlledBody(rotationSpeed, d, thrust, maxSpeed, s)
+  cb := NewControlledBody(rotationSpeed, d, thrust, maxSpeed, s.scale)
   s.allBodies = append(s.allBodies, cb.GetBody())
   s.controlledBodies.Store(id, cb)
   s.bodiesById.Store(id, cb.GetBody())
@@ -125,8 +125,10 @@ func (s *Simulation) Rewind(seq uint16) {
     b.Rewind(seq)
     return true
   })
+  // TODO: bodies
 }
 
+// TODO: handle bodies
 func (s *Simulation) OverwriteState(seq, id, angle, angleDelta uint16, x, y, vx, vy, dvx, dvy int32) {
   cb := s.GetControlledBody(id)
   if cb == nil {
@@ -155,6 +157,7 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
   return cb.PeekState()
 }
 
+// TODO: handle bodies
 // - size               | uint16 |
 // - seq                | uint16 |
 // ControlledBody count | byte
