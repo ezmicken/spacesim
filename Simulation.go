@@ -110,7 +110,7 @@ func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32) {
 func (s *Simulation) RemoveBody(id uint16) {
   body, ok := s.bodiesById.Load(id)
   if ok && body != nil {
-    body.Kill()
+    body.(*Body).Kill()
     s.bodiesById.Delete(id)
   }
 }
