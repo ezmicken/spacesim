@@ -75,8 +75,6 @@ func (s *Simulation) AddControlledBody(id uint16, x, y, d int32) {
   ht.VelocityDelta = fixpoint.ZeroVec3Q16
 
   cb.Initialize(ht)
-
-  return
 }
 
 func (s *Simulation) RemoveControlledBody(id uint16) {
@@ -84,6 +82,35 @@ func (s *Simulation) RemoveControlledBody(id uint16) {
   if ok && cb != nil {
     cb.(*ControlledBody).GetBody().Kill()
     s.controlledBodies.Delete(id)
+    s.bodiesById.Delete(id)
+  }
+}
+
+func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32) {
+  body := NewBody(96, 48, s.scale)
+  s.allBodies = append(s.allBodies, body)
+  s.bodiesById.Store(id, body)
+
+  xPos := fixpoint.Q16FromFloat(x)
+  yPos := fixpoint.Q16FromFloat(y)
+  xVel := fixpoint.Q16FromFloat(vx)
+  yVel := fixpoint.Q16FromFloat(vy)
+
+  var ht HistoricalTransform
+  ht.Seq = s.seq
+  ht.Angle = 0
+  ht.AngleDelta = 0
+  ht.Position = fixpoint.Vec3Q16{xPos, yPos, fixpoint.ZeroQ16}
+  ht.Velocity = fixpoint.Vec3Q16{xVel, yVel, fixpoint.ZeroQ16}
+  ht.VelocityDelta = fixpoint.ZeroVec3Q16
+
+  body.Initialize(ht)
+}
+
+func (s *Simulation) RemoveBody(id uint16) {
+  body, ok := s.bodiesById.Load(id)
+  if ok && body != nil {
+    body.Kill()
     s.bodiesById.Delete(id)
   }
 }
