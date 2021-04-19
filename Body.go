@@ -84,6 +84,8 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
     cc++
   }
 
+  ht = check
+
   return ht
 }
 
