@@ -140,6 +140,16 @@ func (cb *ControlledBody) GetPositionY(seq uint16) fixpoint.Q16 {
   return ht.Position.Y
 }
 
+func (cb *ControlledBody) GetVelocityX(seq uint16) fixpoint.Q16 {
+  ht := cb.stateBuffer.Get(seq)
+  return ht.Velocity.X
+}
+
+func (cb *ControlledBody) GetVelocityY(seq uint16) fixpoint.Q16 {
+  ht := cb.stateBuffer.Get(seq)
+  return ht.Velocity.Y
+}
+
 func (cb *ControlledBody) AddBlock(x, y int32) {
   cb.body.AddBlock(x, y)
 }
