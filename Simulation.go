@@ -86,8 +86,8 @@ func (s *Simulation) RemoveControlledBody(id uint16) {
   }
 }
 
-func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32) {
-  body := NewBody(96, 48, s.scale)
+func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32, size int32) {
+  body := NewBody(size*2, size/2, s.scale)
   s.allBodies = append(s.allBodies, body)
   s.bodiesById.Store(id, body)
 
