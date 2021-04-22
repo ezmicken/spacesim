@@ -49,6 +49,7 @@ func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
 func (b *Body) Initialize(ht HistoricalTransform) {
   b.history[b.historyIdx] = ht
   b.Pos = ht.Position
+  b.NextPos = ht.Position
   b.Vel = ht.Velocity
 }
 
