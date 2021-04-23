@@ -44,14 +44,17 @@ func (c *Collider) Update(position, velocity fixpoint.Vec3Q16) {
 
 func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) HistoricalTransform {
   var closest collision
-  closest.Time = fixpoint.OneQ16
+  closest.Time = fixpoint.MaxQ16
   closest.Normal = fixpoint.ZeroVec3Q16
   closest.Area = fixpoint.ZeroQ16
 
+  // Iterate each piece of static geometry looking for collision.
   for i := 0; i < len(potentialCollisions); i++ {
     if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
       valid := true
+
+      // invalidate the collision if the face is not exposed.
       if col.Area.N > fixpoint.ZeroQ16.N {
         if col.Normal.X != fixpoint.ZeroQ16 {
           oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
@@ -79,7 +82,9 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
           }
         }
       }
-      if valid && col.Area.N > closest.Area.N {
+
+      // "closest" is the one with the largest overlapping area or shortest entry time.
+      if valid && (col.Time.N < closest.Time.N || col.Area.N > closest.Area.N) {
         closest = col
       }
     }
@@ -90,8 +95,8 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   remainingTime := fixpoint.OneQ16.Sub(closest.Time)
   threshold := fixpoint.Q16FromFloat(0.001)
-  if remainingTime.N > fixpoint.ZeroQ16.N {
-    log.Printf("COLLISION: %v/%v", closest.Block.Min.X.Float(), closest.Block.Min.Y.Float())
+  if remainingTime.N >= fixpoint.ZeroQ16.N && closest.Area.N > 0 {
+    log.Printf("COLLISION: %v/%v %v", closest.Block.Min.X.Float(), closest.Block.Min.Y.Float(), remainingTime.Float())
     if fixpoint.Abs(closest.Normal.X).N > threshold.N {
       if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
         pos.X = pos.X.Add(vel.X.Mul(closest.Time))
@@ -131,6 +136,7 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   var dyExit fixpoint.Q16
   var result collision
   result.Block = block
+  result.Area = RectOverlap(c.Narrow, block)
 
   if velocity.X.N > fixpoint.ZeroQ16.N {
     dxEntry = block.Min.X.Sub(c.Narrow.Max.X)
@@ -169,11 +175,34 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     tyExit = dyExit.Div(velocity.Y)
   }
 
+  // Handle the case where it is alread overlapping first..
+  if result.Area.N > fixpoint.ZeroQ16.N {
+    result.Time = fixpoint.ZeroQ16
+    if txEntry.N < tyEntry.N {
+      if velocity.X.N < 0 {
+        result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(-1.0, 0.0, 0.0)
+      }
+    } else {
+      if velocity.Y.N < 0 {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0.0, 1.0, 0.0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0.0, -1.0, 0.0)
+      }
+    }
+
+    return result
+  }
+
   entryTime := fixpoint.Max(txEntry, tyEntry)
   exitTime := fixpoint.Min(txExit, tyExit)
 
+  // already inside the block and will move out.
   exiting := entryTime.N > exitTime.N
   negativeEntry := txEntry.N < fixpoint.ZeroQ16.N && tyEntry.N < fixpoint.ZeroQ16.N
+
+  // not overlapping the block and won't if it moves.
   futureEntry := txEntry.N >= fixpoint.OneQ16.N || tyEntry.N >= fixpoint.OneQ16.N
 
   if exiting || negativeEntry || futureEntry {
@@ -181,8 +210,6 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
     result.Normal = fixpoint.ZeroVec3Q16
   } else {
     result.Time = entryTime
-    movedBody := NewRect(c.Narrow.Min.X.Add(velocity.X), c.Narrow.Min.Y.Add(velocity.Y), c.Narrow.W, c.Narrow.H)
-    result.Area = RectOverlap(movedBody, block)
     if txEntry.N > tyEntry.N {
       if velocity.X.N < 0 {
         result.Normal = fixpoint.Vec3Q16FromFloat(1.0, 0.0, 0.0)
