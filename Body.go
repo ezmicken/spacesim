@@ -16,6 +16,7 @@ type Body struct {
   collider          *Collider
   blocks            []Rect
   blockHead         int
+  blockTail         int
   blockSize         fixpoint.Q16
   maxBlocks         int
 
@@ -39,6 +40,7 @@ func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
   b.dead = false
   b.blocks = make([]Rect, maxBlocks)
   b.blockHead = 0
+  b.blockTail = 0
   b.collider = NewCollider(broadSize, narrowSize)
   b.blockSize = blockSize
   b.maxBlocks = 128
@@ -75,15 +77,25 @@ func (b *Body) Move(seq uint16) HistoricalTransform {
 
 // update the collider and check for collision
 func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
+  // grab a slice of relevant blocks
+  var blockSlice []Rect
+  if b.blockTail > b.blockHead {
+    blockSlice = append(b.blocks[b.blockTail:], b.blocks[:b.blockHead]...)
+  } else {
+    blockSlice = b.blocks[b.blockTail:b.blockHead]
+  }
+
   b.collider.Update(ht.Position, ht.Velocity)
   cc := 1
   check2 := ht
-  check := b.collider.Check(ht, b.blocks)
+  check := b.collider.Check(ht, blockSlice)
   for check != check2 && cc <= 4 {
     check2 = check
-    check = b.collider.Check(check, b.blocks)
+    check = b.collider.Check(check, blockSlice)
     cc++
   }
+
+  b.blockTail = b.blockHead
 
   ht = check
 
@@ -101,14 +113,6 @@ func (b *Body) Commit(ht HistoricalTransform) {
 func (b *Body) AddBlock(x, y int32) {
   fixedX := fixpoint.Q16FromInt32(x).Mul(b.blockSize)
   fixedY := fixpoint.Q16FromInt32(y).Mul(b.blockSize)
-
-  // ignore duplicates -- should probably optimize this out.
-  for i := 0; i < maxBlocks; i++ {
-    block := b.blocks[wrapIdx(b.blockHead-i, b.maxBlocks)]
-    if block.Min.X.N == fixedX.N && block.Min.Y.N == fixedY.N {
-      return
-    }
-  }
 
   b.blocks[b.blockHead] = NewRect(fixedX, fixedY, b.blockSize, b.blockSize)
   b.blockHead = wrapIdx(b.blockHead + 1, b.maxBlocks)
