@@ -20,6 +20,7 @@ type collision struct {
   Normal  fixpoint.Vec3Q16
   Area    fixpoint.Q16
   Block   Rect
+  Overlap Rect
 }
 
 func NewCollider(broadSize, narrowSize int32) *Collider {
@@ -50,7 +51,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   // Iterate each piece of static geometry looking for collision.
   for i := 0; i < len(potentialCollisions); i++ {
-    if RectOverlap(c.Broad, potentialCollisions[i]).N > fixpoint.ZeroQ16.N {
+    if RectOverlap(c.Broad, potentialCollisions[i]) != InvalidRect {
       col := c.sweep(ht.Velocity, potentialCollisions[i])
       valid := true
 
@@ -92,6 +93,29 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   pos := ht.Position
   vel := ht.Velocity
+
+  // collider was already overlapping block
+  if closest.Area != fixpoint.ZeroQ16 {
+    if closest.Overlap.W.N < closest.Overlap.H.N {
+      if closest.Overlap.Min.X == closest.Block.Min.X {
+        pos.X = pos.X.Sub(closest.Overlap.W)
+      } else {
+        pos.X = pos.X.Add(closest.Overlap.W)
+      }
+    } else {
+      if closest.Overlap.Min.Y == closest.Block.Min.Y {
+        pos.Y = pos.Y.Sub(closest.Overlap.H)
+      } else {
+        pos.Y = pos.Y.Add(closest.Overlap.H)
+      }
+    }
+    ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
+    ht.Position = pos
+    ht.Velocity = vel
+
+    c.Update(ht.Position, ht.Velocity)
+    return ht
+  }
 
   remainingTime := fixpoint.OneQ16.Sub(closest.Time)
   threshold := fixpoint.Q16FromFloat(0.001)
@@ -136,34 +160,14 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   var dyExit fixpoint.Q16
   var result collision
   result.Block = block
-  result.Area = RectOverlap(c.Narrow, block)
+  result.Overlap = RectOverlap(c.Narrow, block)
   result.Time = fixpoint.MaxQ16
   result.Normal = fixpoint.ZeroVec3Q16
 
   // Handle the case where it is already overlapping first..
-  if result.Area.N > fixpoint.ZeroQ16.N {
+  if result.Overlap != InvalidRect {
+    result.Area = result.Overlap.W.Mul(result.Overlap.H)
     result.Time = fixpoint.ZeroQ16
-    narrowCenterX := c.Narrow.Min.X.Add(c.Narrow.W.Div(fixpoint.TwoQ16))
-    narrowCenterY := c.Narrow.Min.Y.Add(c.Narrow.H.Div(fixpoint.TwoQ16))
-    blockCenterX := block.Min.X.Add(block.W.Div(fixpoint.TwoQ16))
-    blockCenterY := block.Min.Y.Add(block.H.Div(fixpoint.TwoQ16))
-    blockCenter := fixpoint.Vec3Q16{blockCenterX, blockCenterY, fixpoint.ZeroQ16}
-    narrowCenter := fixpoint.Vec3Q16{narrowCenterX, narrowCenterY, fixpoint.ZeroQ16}
-    diff := blockCenter.Sub(narrowCenter)
-
-    if fixpoint.Abs(diff.X).N > fixpoint.Abs(diff.Y).N {
-      if diff.X.N < fixpoint.ZeroQ16.N {
-        result.Normal = fixpoint.Vec3Q16FromFloat(-1, 0, 0)
-      } else {
-        result.Normal = fixpoint.Vec3Q16FromFloat(1, 0, 0)
-      }
-    } else {
-      if diff.Y.N < fixpoint.ZeroQ16.N {
-        result.Normal = fixpoint.Vec3Q16FromFloat(0, -1, 0)
-      } else {
-        result.Normal = fixpoint.Vec3Q16FromFloat(0, 1, 0)
-      }
-    }
 
     return result
   }

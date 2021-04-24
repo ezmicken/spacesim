@@ -171,6 +171,37 @@ func TestRightCheck(t *testing.T) {
   }
 }
 
+func TestOverlapCheck(t *testing.T) {
+  zero := fixpoint.ZeroQ16
+  ten := fixpoint.Q16FromInt32(10)
+  thirtyTwo := fixpoint.Q16FromInt32(32)
+  thirtyFour := fixpoint.Q16FromInt32(34)
+  fourtyEight := fixpoint.Q16FromInt32(48)
+  fifty := fixpoint.Q16FromInt32(50)
+  sixtyFour := fixpoint.Q16FromInt32(64)
+  eighty := fixpoint.Q16FromInt32(80)
+  oneSixty := fixpoint.Q16FromInt32(160)
+
+  inputPosition := fixpoint.Vec3Q16{eighty, fifty, zero}
+  inputVelocity := fixpoint.Vec3Q16{zero, ten, zero}
+  expectedPosition := fixpoint.Vec3Q16{eighty, fourtyEight, zero}
+
+  collider := NewCollider(160, 32)
+
+  collider.Broad = NewRect(zero, zero, oneSixty, oneSixty)
+  collider.Narrow = NewRect(sixtyFour, thirtyFour, thirtyTwo, thirtyTwo)
+  block := NewRect(sixtyFour, sixtyFour, thirtyTwo, thirtyTwo)
+
+  ht := HistoricalTransform{339, 0, 0, inputPosition, inputVelocity, fixpoint.ZeroVec3Q16}
+
+  result := collider.Check(ht, []Rect{block})
+
+  if result.Position != expectedPosition {
+    t.Logf("Overlap test did not get expected result: %v/%v", result.Position.X.Float(), result.Position.Y.Float())
+    t.Fail()
+  }
+}
+
 
 
 
