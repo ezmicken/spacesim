@@ -137,7 +137,7 @@ func TestDiagonalCheck(t *testing.T) {
 
   // expect deflect in X axis
   if result.Velocity.X != ht.Velocity.X.Mul(fixpoint.HalfQ16).Neg() {
-    t.Logf("SW Diagonal collision not resolved as expected.")
+    t.Logf("SW Diagonal collision not resolved as expected. %v %v", ht.Velocity.X.Float(), result.Velocity.X.Float())
     t.Fail()
   }
 }
