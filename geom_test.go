@@ -12,14 +12,15 @@ func TestRectOverlap(t *testing.T) {
   two := fixpoint.TwoQ16
   three := two.Add(one)
   four := two.Mul(two)
+  area := fixpoint.ZeroQ16
 
 
   // Test rectangles that do not overlap
   leftRect := NewRect(zero, zero, two, two)
   rightRect := NewRect(three, zero, two, two)
   noOverlap := RectOverlap(leftRect, rightRect)
-  if noOverlap != zero {
-    t.Logf("no overlap case found overlap of %v", noOverlap.Float())
+  if noOverlap != InvalidRect {
+    t.Logf("no overlap case found overlap")
     t.Fail()
   }
 
@@ -28,8 +29,9 @@ func TestRectOverlap(t *testing.T) {
   outsideRect := NewRect(zero, zero, four, four)
   insideRect := NewRect(one, one, two, two)
   fullOverlap := RectOverlap(outsideRect, insideRect)
-  if fullOverlap != four {
-    t.Logf("full overlap with different rectangles found unexpected overlap %v", fullOverlap.Float())
+  area = fullOverlap.W.Mul(fullOverlap.H)
+  if area != four {
+    t.Logf("full overlap with different rectangles found unexpected overlap %v", area.Float())
     t.Fail()
   }
 
@@ -37,8 +39,9 @@ func TestRectOverlap(t *testing.T) {
   rect1 := NewRect(zero, zero, two, two)
   rect2 := NewRect(zero, zero, two, two)
   fullOverlap2 := RectOverlap(rect1, rect2)
-  if fullOverlap2 != four {
-    t.Logf("full overlap with identical rectangles found undexpected overlap %v", fullOverlap.Float())
+  area = fullOverlap2.W.Mul(fullOverlap2.H)
+  if area != four {
+    t.Logf("full overlap with identical rectangles found undexpected overlap %v", area.Float())
     t.Fail()
   }
 
@@ -46,8 +49,9 @@ func TestRectOverlap(t *testing.T) {
   leftRect = NewRect(zero, one, two, two)
   rightRect = NewRect(one, zero, four, four)
   leftOverlap := RectOverlap(leftRect, rightRect)
-  if leftOverlap != two {
-    t.Logf("overlap with one side found unexpected overlap %v", leftOverlap.Float())
+  area = leftOverlap.W.Mul(leftOverlap.H)
+  if area != two {
+    t.Logf("overlap with one side found unexpected overlap %v", area.Float())
     t.Fail()
   }
 
@@ -55,8 +59,9 @@ func TestRectOverlap(t *testing.T) {
   leftRect = NewRect(zero, one, two, two)
   rightRect = NewRect(one, zero, two, two)
   cornerOverlap := RectOverlap(leftRect, rightRect)
-  if cornerOverlap != one {
-    t.Logf("corner overlap found unexpected overlap %v", cornerOverlap.Float())
+  area = cornerOverlap.W.Mul(cornerOverlap.H)
+  if area != one {
+    t.Logf("corner overlap found unexpected overlap %v", area.Float())
     t.Fail()
   }
 }
