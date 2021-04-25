@@ -97,17 +97,9 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   // collider was already overlapping block
   if closest.Area != fixpoint.ZeroQ16 {
     if closest.Overlap.W.N < closest.Overlap.H.N {
-      if closest.Overlap.Min.X == closest.Block.Min.X {
-        pos.X = pos.X.Sub(closest.Overlap.W)
-      } else {
-        pos.X = pos.X.Add(closest.Overlap.W)
-      }
+      pos.X = pos.X.Add(closest.Normal.X.Mul(closest.Overlap.W))
     } else {
-      if closest.Overlap.Min.Y == closest.Block.Min.Y {
-        pos.Y = pos.Y.Sub(closest.Overlap.H)
-      } else {
-        pos.Y = pos.Y.Add(closest.Overlap.H)
-      }
+      pos.Y = pos.Y.Add(closest.Normal.Y.Mul(closest.Overlap.H))
     }
     ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
     ht.Position = pos
@@ -168,6 +160,20 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   if result.Overlap != InvalidRect {
     result.Area = result.Overlap.W.Mul(result.Overlap.H)
     result.Time = fixpoint.ZeroQ16
+
+    if result.Overlap.W.N < result.Overlap.H.N {
+      if result.Overlap.Min.X == result.Block.Min.X {
+        result.Normal = fixpoint.Vec3Q16FromFloat(-1, 0, 0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(1, 0, 0)
+      }
+    } else {
+      if result.Overlap.Min.Y == result.Block.Min.Y {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0, -1, 0)
+      } else {
+        result.Normal = fixpoint.Vec3Q16FromFloat(0, 1, 0)
+      }
+    }
 
     return result
   }
