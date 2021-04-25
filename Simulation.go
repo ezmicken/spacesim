@@ -87,14 +87,18 @@ func (s *Simulation) RemoveControlledBody(id uint16) {
 }
 
 func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32, size int32) {
-  body := NewBody(size*2, size/2, s.scale)
-  s.allBodies = append(s.allBodies, body)
-  s.bodiesById.Store(id, body)
-
   xPos := fixpoint.Q16FromFloat(x)
   yPos := fixpoint.Q16FromFloat(y)
   xVel := fixpoint.Q16FromFloat(vx)
   yVel := fixpoint.Q16FromFloat(vy)
+
+  // broad size is magnitude * 3
+  sqrMag := xVel.Mul(xVel).Add(yVel.Mul(yVel))
+  broadSize := sqrMag.InvSqrt().Mul(sqrMag).Mul(fixpoint.Q16FromInt32(3))
+
+  body := NewBody(int32(broadSize.Float()), size, s.scale)
+  s.allBodies = append(s.allBodies, body)
+  s.bodiesById.Store(id, body)
 
   var ht HistoricalTransform
   ht.Seq = s.seq
