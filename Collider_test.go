@@ -193,7 +193,7 @@ func TestOverlapCheck(t *testing.T) {
   }
 }
 
-// collider is touching block
+// collider is touching one block
 func TestSlideCheck(t *testing.T) {
   inputPosition := fixpoint.Vec3Q16{fourtyEight, fourtyEight, zero}
   inputVelocity := fixpoint.Vec3Q16{zero, ten, zero}
@@ -213,6 +213,29 @@ func TestSlideCheck(t *testing.T) {
     t.Fail()
   }
 }
+
+// collider will hit two blocks
+// with ideal having no face exposed.
+// func TestSlideCornerCheck(t *testing.T) {
+//   inputPosition := fixpoint.Vec3Q16{eightyThree, fourtyFive, zero}
+//   inputVelocity := fixpoint.Vec3Q16{five.Neg(), five , zero}
+//   expectedPosition := fixpoint.Vec3Q16{sixtyTwo, thirty, zero}
+//   collider := NewCollider(160, 32)
+
+//   collider.Broad = NewRect(zero, zero, oneSixty, oneSixty)
+//   collider.Narrow = NewRect(sixtySeven, twentyNine, thirtyTwo, thirtyTwo)
+//   block1 := NewRect(thirtyTwo, sixtyFour, thirtyTwo, thirtyTwo)
+//   block2 := NewRect(sixtyFour, sixtyFour, thirtyTwo, thirtyTwo)
+
+//   ht := HistoricalTransform{339, 0, 0, inputPosition, inputVelocity, fixpoint.ZeroVec3Q16}
+
+//   result := collider.Check(ht, []Rect{block1, block2})
+
+//   if result.Position != expectedPosition {
+//     t.Logf("Corner slide test did not get expected result: %v/%v", result.Position.X.Float(), result.Position.Y.Float())
+//     t.Fail()
+//   }
+// }
 
 
 

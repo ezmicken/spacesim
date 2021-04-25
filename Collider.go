@@ -56,7 +56,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
       valid := true
 
       // invalidate the collision if the face is not exposed.
-      if col.Area.N > fixpoint.ZeroQ16.N {
+      if col.Time.N < fixpoint.OneQ16.N {
         if col.Normal.X != fixpoint.ZeroQ16 {
           oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
           twoAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W).Mul(fixpoint.TwoQ16)).N
