@@ -95,7 +95,13 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   vel := ht.Velocity
 
   // collider was already overlapping block
-  if closest.Area != fixpoint.ZeroQ16 {
+  if closest.Overlap != InvalidRect {
+    // collider is touching.
+    if closest.Area == fixpoint.ZeroQ16 {
+      return ht
+    }
+
+    log.Printf("OVERLAP COLLISION: %v/%v", closest.Overlap.W.Float(), closest.Overlap.H.Float())
     if closest.Overlap.W.N < closest.Overlap.H.N {
       pos.X = pos.X.Add(closest.Normal.X.Mul(closest.Overlap.W))
     } else {
