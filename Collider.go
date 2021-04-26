@@ -51,43 +51,41 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
 
   // Iterate each piece of static geometry looking for collision.
   for i := 0; i < len(potentialCollisions); i++ {
-    if RectOverlap(c.Broad, potentialCollisions[i]) != InvalidRect {
-      col := c.sweep(ht.Velocity, potentialCollisions[i])
-      valid := true
+    col := c.sweep(ht.Velocity, potentialCollisions[i])
+    valid := true
 
-      // invalidate the collision if the face is not exposed.
-      if col.Time.N < fixpoint.OneQ16.N {
-        if col.Normal.X != fixpoint.ZeroQ16 {
-          oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
-          twoAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W).Mul(fixpoint.TwoQ16)).N
-          for j := 0; j < len(potentialCollisions); j++ {
-            if potentialCollisions[j] != potentialCollisions[i] {
-              xmin := potentialCollisions[j].Min.X.N
-              if (xmin == oneAway || xmin == twoAway) && potentialCollisions[j].Min.Y == col.Block.Min.Y {
-                valid = false
-                break;
-              }
+    // invalidate the collision if the face is not exposed.
+    if col.Time.N < fixpoint.OneQ16.N {
+      if col.Normal.X != fixpoint.ZeroQ16 {
+        oneAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W)).N
+        twoAway := col.Block.Min.X.Add(col.Normal.X.Mul(col.Block.W).Mul(fixpoint.TwoQ16)).N
+        for j := 0; j < len(potentialCollisions); j++ {
+          if potentialCollisions[j] != potentialCollisions[i] {
+            xmin := potentialCollisions[j].Min.X.N
+            if (xmin == oneAway || xmin == twoAway) && potentialCollisions[j].Min.Y == col.Block.Min.Y {
+              valid = false
+              break;
             }
           }
-        } else if col.Normal.Y != fixpoint.ZeroQ16 {
-          oneAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H)).N
-          twoAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H).Mul(fixpoint.TwoQ16)).N
-          for j := 0; j < len(potentialCollisions); j++ {
-            if potentialCollisions[j] != potentialCollisions[i] {
-              ymin := potentialCollisions[j].Min.Y.N
-              if (ymin == oneAway || ymin == twoAway) && potentialCollisions[j].Min.X == col.Block.Min.X {
-                valid = false
-                break;
-              }
+        }
+      } else if col.Normal.Y != fixpoint.ZeroQ16 {
+        oneAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H)).N
+        twoAway := col.Block.Min.Y.Add(col.Normal.Y.Mul(col.Block.H).Mul(fixpoint.TwoQ16)).N
+        for j := 0; j < len(potentialCollisions); j++ {
+          if potentialCollisions[j] != potentialCollisions[i] {
+            ymin := potentialCollisions[j].Min.Y.N
+            if (ymin == oneAway || ymin == twoAway) && potentialCollisions[j].Min.X == col.Block.Min.X {
+              valid = false
+              break;
             }
           }
         }
       }
+    }
 
-      // "closest" is the one with the largest overlapping area or shortest entry time.
-      if valid && (col.Time.N < closest.Time.N || col.Area.N > closest.Area.N) {
-        closest = col
-      }
+    // "closest" is the one with the largest overlapping area or shortest entry time.
+    if valid && (col.Time.N < closest.Time.N || col.Area.N > closest.Area.N) {
+      closest = col
     }
   }
 
