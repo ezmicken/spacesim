@@ -99,6 +99,9 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   check2 := ht
   check := b.collider.Check(ht, blockSlice)
   for check != check2 && cc <= 4 {
+    // escape as soon as no collision is detected
+    if check2 == check { break }
+
     check2 = check
     b.collider.Update(check.Position, check.Velocity)
     check = b.collider.Check(check, blockSlice)
