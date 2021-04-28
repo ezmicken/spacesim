@@ -23,7 +23,8 @@ type Body struct {
   history           []HistoricalTransform
   historyIdx        int
 
-  dead  bool
+  firstFrame        bool
+  dead              bool
 }
 
 var historyLength int = 1024
@@ -37,6 +38,7 @@ func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
   b.NextPos = fixpoint.ZeroVec3Q16
   b.Pos = fixpoint.ZeroVec3Q16
   b.Vel = fixpoint.ZeroVec3Q16
+  b.firstFrame = true;
   b.dead = false
   b.blocks = make([]Rect, maxBlocks)
   b.blockHead = 0
@@ -56,7 +58,14 @@ func (b *Body) Initialize(ht HistoricalTransform) {
 }
 
 func (b *Body) Advance(seq uint16) {
-  ht := b.Move(seq)
+  var ht HistoricalTransform
+  if b.firstFrame {
+    b.firstFrame = false
+    ht = b.history[b.historyIdx]
+    ht = b.Collide(ht)
+  } else {
+    ht = b.Move(seq)
+  }
 
   ht = b.Collide(ht)
 
@@ -91,6 +100,7 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   check := b.collider.Check(ht, blockSlice)
   for check != check2 && cc <= 4 {
     check2 = check
+    b.collider.Update(check.Position, check.Velocity)
     check = b.collider.Check(check, blockSlice)
     cc++
   }
