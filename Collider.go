@@ -18,9 +18,7 @@ type Collider struct {
 type collision struct {
   Time    fixpoint.Q16
   Normal  fixpoint.Vec3Q16
-  Area    fixpoint.Q16
   Block   Rect
-  Overlap Rect
 }
 
 func NewCollider(broadSize, narrowSize int32) *Collider {
@@ -47,7 +45,6 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
   var closest collision
   closest.Time = fixpoint.MaxQ16
   closest.Normal = fixpoint.ZeroVec3Q16
-  closest.Area = fixpoint.ZeroQ16
 
   // Iterate each piece of static geometry looking for collision.
   for i := 0; i < len(potentialCollisions); i++ {
@@ -83,7 +80,7 @@ func (c *Collider) Check(ht HistoricalTransform, potentialCollisions []Rect) His
       }
     }
 
-    // "closest" is the one with the largest overlapping area or shortest entry time.
+    // closest is the one with the lowest time to entry.
     if valid && col.Time.N < closest.Time.N {
       closest = col
     }
@@ -135,7 +132,6 @@ func (c *Collider) sweep(velocity fixpoint.Vec3Q16, block Rect) collision {
   var dyExit fixpoint.Q16
   var result collision
   result.Block = block
-  result.Overlap = RectOverlap(c.Narrow, block)
   result.Time = fixpoint.MaxQ16
   result.Normal = fixpoint.ZeroVec3Q16
 
