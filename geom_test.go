@@ -24,6 +24,14 @@ func TestRectOverlap(t *testing.T) {
     t.Fail()
   }
 
+  leftRect = NewRect(thirtyTwo.Neg(), thirtyTwo, thirtyTwo, thirtyTwo)
+  rightRect = NewRect(twentyNine.Neg(), thirtyTwo, thirtyTwo, thirtyTwo)
+  negOverlap := RectOverlap(leftRect, rightRect)
+  if negOverlap == InvalidRect {
+    t.Logf("negative overlap case did not find overlap")
+    t.Fail()
+  }
+
   // Test that one rectangle inside another
   // overlaps by the correct amount
   outsideRect := NewRect(zero, zero, four, four)

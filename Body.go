@@ -1,6 +1,7 @@
 package spacesim
 
 import(
+  //"log"
   "encoding/binary"
   "github.com/ezmicken/fixpoint"
 )
@@ -43,9 +44,8 @@ func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
   b.blocks = make([]Rect, maxBlocks)
   b.blockHead = 0
   b.blockTail = 0
-  b.collider = NewCollider(broadSize, narrowSize)
+  b.collider = NewCollider(narrowSize)
   b.blockSize = blockSize
-  b.maxBlocks = 128
 
   return &b
 }
@@ -80,7 +80,6 @@ func (b *Body) Move(seq uint16) HistoricalTransform {
   b.historyIdx = wrapIdx(b.historyIdx + 1, historyLength)
   ht.Seq = seq
 
-  ht.Position = ht.Position.Add(ht.Velocity)
   return ht;
 }
 
@@ -95,22 +94,49 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   }
 
   b.collider.Update(ht.Position, ht.Velocity)
-  cc := 1
-  check2 := ht
-  check := b.collider.Check(ht, blockSlice)
-  for check != check2 && cc <= 4 {
-    // escape as soon as no collision is detected
-    if check2 == check { break }
+  pos := ht.Position
+  vel := ht.Velocity
+  collision := b.collider.Check(pos, vel, blockSlice)
+  remainingTime := fixpoint.OneQ16.Sub(collision.Time)
+  if remainingTime.N <= fixpoint.ZeroQ16.N {
+    pos.X = pos.X.Add(vel.X)
+    pos.Y = pos.Y.Add(vel.Y)
+  } else {
+    for cc := 1; remainingTime.N > fixpoint.ZeroQ16.N && cc <= 4; cc++ {
+      pos = pos.Add(vel.Mul(collision.Time))
 
-    check2 = check
-    b.collider.Update(check.Position, check.Velocity)
-    check = b.collider.Check(check, blockSlice)
-    cc++
+      // deflect unless slow enough to stop
+      if fixpoint.Abs(collision.Normal.X).N > fixpoint.ZeroQ16.N {
+        if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
+          vel.X = fixpoint.ZeroQ16
+        } else {
+          // TODO: make this configurable.
+          vel.X = vel.X.Mul(fixpoint.HalfQ16).Neg()
+        }
+      } else if fixpoint.Abs(collision.Normal.Y).N > fixpoint.ZeroQ16.N {
+        if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
+          vel.Y = fixpoint.ZeroQ16
+        } else {
+          // TODO: make this configurable.
+          vel.Y = vel.Y.Mul(fixpoint.HalfQ16).Neg()
+        }
+      }
+
+      b.collider.Update(pos, vel)
+      collision = b.collider.Check(pos, vel, blockSlice)
+      if collision.Time.N > remainingTime.N {
+        pos = pos.Add(vel.Mul(remainingTime))
+      }
+
+      remainingTime = remainingTime.Sub(collision.Time)
+    }
   }
 
-  b.blockTail = b.blockHead
+  ht.VelocityDelta = vel.Sub(ht.Velocity.Sub(ht.VelocityDelta))
+  ht.Position = pos
+  ht.Velocity = vel
 
-  ht = check
+  b.blockTail = b.blockHead
 
   return ht
 }
@@ -128,7 +154,7 @@ func (b *Body) AddBlock(x, y int32) {
   fixedY := fixpoint.Q16FromInt32(y).Mul(b.blockSize)
 
   b.blocks[b.blockHead] = NewRect(fixedX, fixedY, b.blockSize, b.blockSize)
-  b.blockHead = wrapIdx(b.blockHead + 1, b.maxBlocks)
+  b.blockHead = wrapIdx(b.blockHead + 1, maxBlocks)
 }
 
 func (b *Body) OverwriteState(ht HistoricalTransform) {

@@ -21,7 +21,7 @@ type ControlledBody struct {
   lastInputSeq      uint16
 }
 
-var maxBlocks int = 128
+var maxBlocks int = 256
 
 // instantiation
 ///////////////////////
