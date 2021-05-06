@@ -65,9 +65,8 @@ func (b *Body) Advance(seq uint16) {
     ht = b.Collide(ht)
   } else {
     ht = b.Move(seq)
+    ht = b.Collide(ht)
   }
-
-  ht = b.Collide(ht)
 
   b.Commit(ht)
 }
