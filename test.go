@@ -9,6 +9,7 @@ var scale fixpoint.Q16 = fixpoint.Q16FromInt32(32)
 
 // some number constants
 var zero        fixpoint.Q16  = fixpoint.ZeroQ16
+var one         fixpoint.Q16  = fixpoint.OneQ16
 var two         fixpoint.Q16  = fixpoint.TwoQ16
 var five        fixpoint.Q16  = fixpoint.Q16FromInt32(5)
 var ten         fixpoint.Q16  = fixpoint.Q16FromInt32(10)

@@ -216,6 +216,25 @@ func TestExposedNormalCheck(t *testing.T) {
   }
 }
 
+func TestFastObject(t *testing.T) {
+  inputPosition := fixpoint.Vec3Q16{fourtyEight, thirtyTwo, zero}
+  inputVelocity := fixpoint.Vec3Q16{zero, oneSixty, zero}
+  expectedNormal := fixpoint.Vec3Q16{zero, one.Neg(), zero}
+  collider := NewCollider(32)
+
+  collider.Update(inputPosition, inputVelocity)
+  block := NewRect(thirtyTwo, sixtyFour, thirtyTwo, thirtyTwo)
+
+  ht := HistoricalTransform{339, 0, 0, inputPosition, inputVelocity, fixpoint.ZeroVec3Q16}
+
+  result := collider.Check(ht.Position, ht.Velocity, []Rect{block})
+
+  if result.Normal != expectedNormal {
+    t.Logf("Fast object test did not get expected result: %v/%v", result.Normal.X.Float(), result.Normal.Y.Float())
+    t.Fail()
+  }
+}
+
 func TestMissCheck(t *testing.T) {
   inputPosition := fixpoint.Vec3Q16{fourtyEight, fourtyEight, zero}
   inputVelocity := fixpoint.Vec3Q16{zero, ten, zero}
