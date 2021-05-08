@@ -13,7 +13,7 @@ func TestSerializeState(t *testing.T) {
     t.Fail()
   }
 
-  sim.AddControlledBody(id, int32(1234), int32(4321), int32(1))
+  sim.AddControlledBody(id, int32(1234), int32(4321), int32(1), float32(0.5))
   cb := sim.GetControlledBody(id)
 
   for i := 0; i < 100; i++ {
@@ -48,8 +48,8 @@ func TestIntegration(t *testing.T) {
   }
 
   // Add two bodies
-  sim.AddControlledBody(id, int32(1234), int32(4321), int32(1))
-  sim.AddControlledBody(id2, int32(4321), int32(1234), int32(1))
+  sim.AddControlledBody(id, int32(1234), int32(4321), int32(1), float32(0.5))
+  sim.AddControlledBody(id2, int32(4321), int32(1234), int32(1), float32(0.5))
   cb := sim.GetControlledBody(id)
   cb2 := sim.GetControlledBody(id2)
 

@@ -57,8 +57,8 @@ func (s *Simulation) GetBody(id uint16) *Body {
   }
 }
 
-func (s *Simulation) AddControlledBody(id uint16, x, y, d int32) {
-  cb := NewControlledBody(rotationSpeed, d, thrust, maxSpeed, s.scale)
+func (s *Simulation) AddControlledBody(id uint16, x, y, d int32, bounceCo float32) {
+  cb := NewControlledBody(rotationSpeed, d, thrust, maxSpeed, s.scale, fixpoint.Q16FromFloat(bounceCo))
   s.allBodies = append(s.allBodies, cb.GetBody())
   s.controlledBodies.Store(id, cb)
   s.bodiesById.Store(id, cb.GetBody())
@@ -86,17 +86,18 @@ func (s *Simulation) RemoveControlledBody(id uint16) {
   }
 }
 
-func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32, size int32) {
+func (s *Simulation) AddBody(id uint16, x, y, vx, vy, bounceCo float32, size int32) {
   xPos := fixpoint.Q16FromFloat(x)
   yPos := fixpoint.Q16FromFloat(y)
   xVel := fixpoint.Q16FromFloat(vx)
   yVel := fixpoint.Q16FromFloat(vy)
+  bounceCoQ16 := fixpoint.Q16FromFloat(bounceCo)
 
   // broad size is magnitude * 3
   sqrMag := xVel.Mul(xVel).Add(yVel.Mul(yVel))
   broadSize := sqrMag.InvSqrt().Mul(sqrMag).Mul(fixpoint.Q16FromInt32(3))
 
-  body := NewBody(int32(broadSize.Float()), size, s.scale)
+  body := NewBody(int32(broadSize.Float()), size, s.scale, bounceCoQ16)
   s.allBodies = append(s.allBodies, body)
   s.bodiesById.Store(id, body)
 

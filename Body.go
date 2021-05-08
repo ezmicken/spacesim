@@ -24,13 +24,15 @@ type Body struct {
   history           []HistoricalTransform
   historyIdx        int
 
+  bounceCoefficient fixpoint.Q16
+
   firstFrame        bool
   dead              bool
 }
 
 var historyLength int = 1024
 
-func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
+func NewBody(broadSize, narrowSize int32, blockSize, bounceCo fixpoint.Q16) *Body {
   var b Body
   b.history = make([]HistoricalTransform, historyLength)
   b.historyIdx = 0
@@ -46,6 +48,7 @@ func NewBody(broadSize, narrowSize int32, blockSize fixpoint.Q16) *Body {
   b.blockTail = 0
   b.collider = NewCollider(narrowSize)
   b.blockSize = blockSize
+  b.bounceCoefficient = bounceCo
 
   return &b
 }
@@ -110,14 +113,14 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
           vel.X = fixpoint.ZeroQ16
         } else {
           // TODO: make this configurable.
-          vel.X = vel.X.Mul(fixpoint.HalfQ16).Neg()
+          vel.X = vel.X.Mul(b.bounceCoefficient).Neg()
         }
       } else if fixpoint.Abs(collision.Normal.Y).N > fixpoint.ZeroQ16.N {
         if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
           vel.Y = fixpoint.ZeroQ16
         } else {
           // TODO: make this configurable.
-          vel.Y = vel.Y.Mul(fixpoint.HalfQ16).Neg()
+          vel.Y = vel.Y.Mul(b.bounceCoefficient).Neg()
         }
       }
 

@@ -26,9 +26,9 @@ var maxBlocks int = 256
 // instantiation
 ///////////////////////
 
-func NewControlledBody(r, d int32, t, s fixpoint.Q16, blockScale fixpoint.Q16) (*ControlledBody) {
+func NewControlledBody(r, d int32, t, s fixpoint.Q16, blockScale, bounceCo fixpoint.Q16) (*ControlledBody) {
   var cbod ControlledBody
-  cbod.body = NewBody(96, 48, blockScale)
+  cbod.body = NewBody(96, 48, blockScale, bounceCo)
   cbod.stateBuffer = NewStateBuffer(256)
   cbod.rotationSpeed = r
   cbod.thrust = t
