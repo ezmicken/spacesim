@@ -52,11 +52,21 @@ var randomHT HistoricalTransform = HistoricalTransform {
 }
 
 var testControlledBodyInfo BodyInfo = BodyInfo {
+  Id: 1,
   Size: 48,
+  Proximity: 0,
+  Lifetime: -1,
   BounceCoefficient: 0.5,
+  VelocityX: 0.0,
+  VelocityY: 0.0,
 }
 
 var testBodyInfo BodyInfo = BodyInfo {
+  Id: 1,
   Size: 32,
+  Proximity: 0,
+  Lifetime: 8000,
   BounceCoefficient: 1,
+  VelocityX: 20.0,
+  VelocityY: 20.0,
 }

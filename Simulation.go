@@ -86,11 +86,11 @@ func (s *Simulation) RemoveControlledBody(id uint16) {
   }
 }
 
-func (s *Simulation) AddBody(id uint16, x, y, vx, vy float32, bodyInfo BodyInfo) {
+func (s *Simulation) AddBody(id uint16, x, y float32, bodyInfo BodyInfo) {
   xPos := fixpoint.Q16FromFloat(x)
   yPos := fixpoint.Q16FromFloat(y)
-  xVel := fixpoint.Q16FromFloat(vx)
-  yVel := fixpoint.Q16FromFloat(vy)
+  xVel := fixpoint.Q16FromFloat(bodyInfo.VelocityX)
+  yVel := fixpoint.Q16FromFloat(bodyInfo.VelocityY)
 
   body := NewBody(bodyInfo, s.scale)
   s.allBodies = append(s.allBodies, body)

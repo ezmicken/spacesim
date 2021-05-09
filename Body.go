@@ -7,8 +7,13 @@ import(
 )
 
 type BodyInfo struct {
+  Id                uint16
   Size              int32
+  Proximity         int32
+  Lifetime          int32
   BounceCoefficient float32
+  VelocityX         float32
+  VelocityY         float32
 }
 
 type Body struct {
