@@ -53,10 +53,10 @@ var randomHT HistoricalTransform = HistoricalTransform {
 
 var testControlledBodyInfo BodyInfo = BodyInfo {
   Size: 48,
-  BounceCoefficient: fixpoint.HalfQ16,
+  BounceCoefficient: 0.5,
 }
 
 var testBodyInfo BodyInfo = BodyInfo {
   Size: 32,
-  BounceCoefficient: fixpoint.OneQ16,
+  BounceCoefficient: 1,
 }
