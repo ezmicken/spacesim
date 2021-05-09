@@ -6,6 +6,11 @@ import(
   "github.com/ezmicken/fixpoint"
 )
 
+type BodyInfo struct {
+  Size              int32
+  BounceCoefficient fixpoint.Q16
+}
+
 type Body struct {
   Angle             int32
   NextAngle         int32
@@ -24,7 +29,7 @@ type Body struct {
   history           []HistoricalTransform
   historyIdx        int
 
-  bounceCoefficient fixpoint.Q16
+  info              BodyInfo
 
   firstFrame        bool
   dead              bool
@@ -32,7 +37,7 @@ type Body struct {
 
 var historyLength int = 1024
 
-func NewBody(broadSize, narrowSize int32, blockSize, bounceCo fixpoint.Q16) *Body {
+func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   var b Body
   b.history = make([]HistoricalTransform, historyLength)
   b.historyIdx = 0
@@ -46,9 +51,9 @@ func NewBody(broadSize, narrowSize int32, blockSize, bounceCo fixpoint.Q16) *Bod
   b.blocks = make([]Rect, maxBlocks)
   b.blockHead = 0
   b.blockTail = 0
-  b.collider = NewCollider(narrowSize)
+  b.collider = NewCollider(bodyInfo.Size)
+  b.info = bodyInfo
   b.blockSize = blockSize
-  b.bounceCoefficient = bounceCo
 
   return &b
 }
@@ -113,14 +118,14 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
           vel.X = fixpoint.ZeroQ16
         } else {
           // TODO: make this configurable.
-          vel.X = vel.X.Mul(b.bounceCoefficient).Neg()
+          vel.X = vel.X.Mul(b.info.BounceCoefficient).Neg()
         }
       } else if fixpoint.Abs(collision.Normal.Y).N > fixpoint.ZeroQ16.N {
         if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
           vel.Y = fixpoint.ZeroQ16
         } else {
           // TODO: make this configurable.
-          vel.Y = vel.Y.Mul(b.bounceCoefficient).Neg()
+          vel.Y = vel.Y.Mul(b.info.BounceCoefficient).Neg()
         }
       }
 

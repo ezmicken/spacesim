@@ -13,6 +13,7 @@ var one         fixpoint.Q16  = fixpoint.OneQ16
 var two         fixpoint.Q16  = fixpoint.TwoQ16
 var five        fixpoint.Q16  = fixpoint.Q16FromInt32(5)
 var ten         fixpoint.Q16  = fixpoint.Q16FromInt32(10)
+var twenty      fixpoint.Q16  = fixpoint.Q16FromInt32(20)
 var twentyNine  fixpoint.Q16  = fixpoint.Q16FromInt32(29)
 var thirty      fixpoint.Q16  = fixpoint.Q16FromInt32(30)
 var thirtyTwo   fixpoint.Q16  = fixpoint.Q16FromInt32(32)
@@ -48,4 +49,14 @@ var randomHT HistoricalTransform = HistoricalTransform {
   Position: fixpoint.ZeroVec3Q16,
   Velocity: fixpoint.ZeroVec3Q16,
   VelocityDelta: fixpoint.ZeroVec3Q16,
+}
+
+var testControlledBodyInfo BodyInfo = BodyInfo {
+  Size: 48,
+  BounceCoefficient: fixpoint.HalfQ16,
+}
+
+var testBodyInfo BodyInfo = BodyInfo {
+  Size: 32,
+  BounceCoefficient: fixpoint.OneQ16,
 }

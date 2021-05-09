@@ -16,8 +16,6 @@ type ControlledBody struct {
   stateBuffer       *StateBuffer
   body              *Body
 
-  delay             int
-
   lastInputSeq      uint16
 }
 
@@ -26,15 +24,14 @@ var maxBlocks int = 256
 // instantiation
 ///////////////////////
 
-func NewControlledBody(r, d int32, t, s fixpoint.Q16, blockScale, bounceCo fixpoint.Q16) (*ControlledBody) {
+func NewControlledBody(r int32, t, s, blockScale fixpoint.Q16, bodyInfo BodyInfo) (*ControlledBody) {
   var cbod ControlledBody
-  cbod.body = NewBody(96, 48, blockScale, bounceCo)
+  cbod.body = NewBody(bodyInfo, blockScale)
   cbod.stateBuffer = NewStateBuffer(256)
   cbod.rotationSpeed = r
   cbod.thrust = t
   cbod.maxSpeed = s
   cbod.sqrMaxSpeed = s.Mul(s)
-  cbod.delay = int(d)
   cbod.lastInputSeq = 0
 
   return &cbod
