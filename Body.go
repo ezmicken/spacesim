@@ -36,7 +36,7 @@ type Body struct {
 
   info              BodyInfo
   bounceCoefficient fixpoint.Q16
-  bounces           int
+  bounces           int32
 
   firstFrame        bool
   dead              bool
@@ -202,7 +202,7 @@ func (b *Body) SerializeState(data []byte, head int) int {
 }
 
 func (b *Body) IsDead()     bool  { return b.dead }
-func (b *Body) GetBounces() int   { return b.bounces }
+func (b *Body) GetBounces() int32 { return b.bounces }
 
 func (b *Body) Kill() {
   b.dead = true
