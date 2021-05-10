@@ -36,6 +36,7 @@ type Body struct {
 
   info              BodyInfo
   bounceCoefficient fixpoint.Q16
+  bounces           int
 
   firstFrame        bool
   dead              bool
@@ -60,6 +61,7 @@ func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   b.collider = NewCollider(bodyInfo.Size)
   b.info = bodyInfo
   b.bounceCoefficient = fixpoint.Q16FromFloat(bodyInfo.BounceCoefficient)
+  b.bounces = 0
   b.blockSize = blockSize
 
   return &b
@@ -118,20 +120,19 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   } else {
     for cc := 1; remainingTime.N > fixpoint.ZeroQ16.N && cc <= 4; cc++ {
       pos = pos.Add(vel.Mul(collision.Time))
+      b.bounces++
 
       // deflect unless slow enough to stop
       if fixpoint.Abs(collision.Normal.X).N > fixpoint.ZeroQ16.N {
         if fixpoint.Abs(vel.X).N < fixpoint.OneQ16.N {
           vel.X = fixpoint.ZeroQ16
         } else {
-          // TODO: make this configurable.
           vel.X = vel.X.Mul(b.bounceCoefficient).Neg()
         }
       } else if fixpoint.Abs(collision.Normal.Y).N > fixpoint.ZeroQ16.N {
         if fixpoint.Abs(vel.Y).N < fixpoint.OneQ16.N {
           vel.Y = fixpoint.ZeroQ16
         } else {
-          // TODO: make this configurable.
           vel.Y = vel.Y.Mul(b.bounceCoefficient).Neg()
         }
       }
@@ -200,9 +201,8 @@ func (b *Body) SerializeState(data []byte, head int) int {
   return head
 }
 
-func(b *Body) IsDead() bool {
-  return b.dead
-}
+func (b *Body) IsDead()     bool  { return b.dead }
+func (b *Body) GetBounces() int   { return b.bounces }
 
 func (b *Body) Kill() {
   b.dead = true
