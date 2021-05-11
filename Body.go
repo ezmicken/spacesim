@@ -26,14 +26,6 @@ type Movement struct {
   Time      float32
 }
 
-var NoMovement Movement = Movement {
-  0.0,
-  0.0,
-  0.0,
-  0.0,
-  0.0,
-}
-
 type Body struct {
   Angle             int32
   NextAngle         int32
@@ -249,7 +241,9 @@ func (b *Body) addMovement(pos, vel fixpoint.Vec3Q16, time fixpoint.Q16) {
 }
 func (b *Body) GetMovement() Movement {
   m := b.movements[b.movementTail]
-  b.movementTail = wrapIdx(b.movementTail+1, movementLength)
+  if (b.movementTail < b.movementHead) {
+    b.movementTail = wrapIdx(b.movementTail+1, movementLength)
+  }
   return m
 }
 
