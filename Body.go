@@ -19,11 +19,11 @@ type BodyInfo struct {
 
 // Describes a movement over the smallest amount of time.
 type Movement struct {
-  positionX float32
-  positionY float32
-  velocityX float32
-  velocityY float32
-  time      float32
+  PositionX float32
+  PositionY float32
+  VelocityX float32
+  VelocityY float32
+  Time      float32
 }
 
 type Body struct {
