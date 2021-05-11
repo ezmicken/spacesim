@@ -6,6 +6,7 @@ import(
   "github.com/ezmicken/fixpoint"
 )
 
+// Information about the body.
 type BodyInfo struct {
   Id                uint16
   Size              int32
@@ -14,6 +15,15 @@ type BodyInfo struct {
   BounceCoefficient float32
   VelocityX         float32
   VelocityY         float32
+}
+
+// Describes a movement over the smallest amount of time.
+type Movement struct {
+  positionX float32
+  positionY float32
+  velocityX float32
+  velocityY float32
+  time      float32
 }
 
 type Body struct {
@@ -34,15 +44,19 @@ type Body struct {
   history           []HistoricalTransform
   historyIdx        int
 
+  movements         []Movement
+  movementHead      int
+  movementTail      int
+
   info              BodyInfo
   bounceCoefficient fixpoint.Q16
-  bounces           int32
 
   firstFrame        bool
   dead              bool
 }
 
 var historyLength int = 1024
+var movementLength = 32
 
 func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   var b Body
@@ -61,8 +75,10 @@ func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   b.collider = NewCollider(bodyInfo.Size)
   b.info = bodyInfo
   b.bounceCoefficient = fixpoint.Q16FromFloat(bodyInfo.BounceCoefficient)
-  b.bounces = 0
   b.blockSize = blockSize
+  b.movements = make([]Movement, movementLength)
+  b.movementHead = 0
+  b.movementTail = 0
 
   return &b
 }
@@ -75,6 +91,7 @@ func (b *Body) Initialize(ht HistoricalTransform) {
 }
 
 func (b *Body) Advance(seq uint16) {
+  b.movementTail = b.movementHead
   var ht HistoricalTransform
   if b.firstFrame {
     b.firstFrame = false
@@ -117,10 +134,11 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   if remainingTime.N <= fixpoint.ZeroQ16.N {
     pos.X = pos.X.Add(vel.X)
     pos.Y = pos.Y.Add(vel.Y)
+    b.addMovement(pos, vel, fixpoint.OneQ16)
   } else {
+    var accumulatedTime fixpoint.Q16 = fixpoint.ZeroQ16
     for cc := 1; remainingTime.N > fixpoint.ZeroQ16.N && cc <= 4; cc++ {
       pos = pos.Add(vel.Mul(collision.Time))
-      b.bounces++
 
       // deflect unless slow enough to stop
       if fixpoint.Abs(collision.Normal.X).N > fixpoint.ZeroQ16.N {
@@ -137,10 +155,16 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
         }
       }
 
+      // Add a movement with this information.
+      accumulatedTime = accumulatedTime.Add(collision.Time)
+      b.addMovement(pos, vel, collision.Time)
+
+      // Check for a new collision from this point.
       b.collider.Update(pos, vel)
       collision = b.collider.Check(pos, vel, blockSlice)
       if collision.Time.N > remainingTime.N {
         pos = pos.Add(vel.Mul(remainingTime))
+        b.addMovement(pos, vel, fixpoint.OneQ16)
       }
 
       remainingTime = remainingTime.Sub(collision.Time)
@@ -201,12 +225,27 @@ func (b *Body) SerializeState(data []byte, head int) int {
   return head
 }
 
-func (b *Body) IsDead()     bool  { return b.dead }
-func (b *Body) GetBounces() int32 { return b.bounces }
-
 func (b *Body) Kill() {
   b.dead = true
 }
+
+func (b *Body) addMovement(pos, vel fixpoint.Vec3Q16, time fixpoint.Q16) {
+  b.movements[b.movementHead] = Movement {
+    pos.X.Float(),
+    pos.Y.Float(),
+    vel.X.Float(),
+    vel.Y.Float(),
+    time.Float(),
+  }
+  b.movementHead = wrapIdx(b.movementHead+1, movementLength)
+}
+func (b *Body) GetMovement() Movement {
+  m := b.movements[b.movementTail]
+  b.movementTail = wrapIdx(b.movementTail+1, movementLength)
+  return m
+}
+
+func (b *Body) IsDead()     bool  { return b.dead }
 
 func wrapIdx(idx, max int) int {
   for idx >= max { idx -= max }
