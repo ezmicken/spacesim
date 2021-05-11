@@ -26,6 +26,14 @@ type Movement struct {
   Time      float32
 }
 
+var NoMovement Movement = Movement {
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+  0.0,
+}
+
 type Body struct {
   Angle             int32
   NextAngle         int32
