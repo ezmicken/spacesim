@@ -157,12 +157,12 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
 
       // Add a movement with this information.
       accumulatedTime = accumulatedTime.Add(collision.Time)
-      b.addMovement(pos, vel, collision.Time)
+      b.addMovement(pos, vel, accumulatedTime)
 
       // Check for a new collision from this point.
       b.collider.Update(pos, vel)
       collision = b.collider.Check(pos, vel, blockSlice)
-      if collision.Time.N > remainingTime.N {
+      if collision.Time.N >= remainingTime.N {
         pos = pos.Add(vel.Mul(remainingTime))
         b.addMovement(pos, vel, fixpoint.OneQ16)
       }
@@ -241,7 +241,8 @@ func (b *Body) addMovement(pos, vel fixpoint.Vec3Q16, time fixpoint.Q16) {
 }
 func (b *Body) GetMovement() Movement {
   m := b.movements[b.movementTail]
-  if (b.movementTail < b.movementHead) {
+  limit := wrapIdx(b.movementHead-1, movementLength)
+  if (b.movementTail < limit) {
     b.movementTail = wrapIdx(b.movementTail+1, movementLength)
   }
   return m
