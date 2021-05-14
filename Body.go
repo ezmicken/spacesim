@@ -56,7 +56,7 @@ type Body struct {
 }
 
 var historyLength int = 1024
-var movementLength = 32
+var movementLength int = 32
 
 func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   var b Body
@@ -242,7 +242,7 @@ func (b *Body) addMovement(pos, vel fixpoint.Vec3Q16, time fixpoint.Q16) {
 func (b *Body) GetMovement() Movement {
   m := b.movements[b.movementTail]
   limit := wrapIdx(b.movementHead-1, movementLength)
-  if (b.movementTail < limit) {
+  if (b.movementTail != limit) {
     b.movementTail = wrapIdx(b.movementTail+1, movementLength)
   }
   return m
