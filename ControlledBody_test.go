@@ -29,6 +29,7 @@ func TestAdvance(t *testing.T) {
   for i := uint16(0); i < 640; i++ {
     cb.PushInput(testSeq, byte(4))
     testSeq++
+    cb.GetBody().Advance(i)
     cb.Advance(i)
   }
 }

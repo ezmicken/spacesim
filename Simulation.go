@@ -147,11 +147,16 @@ func (s *Simulation) Advance(seq int) {
 }
 
 func (s *Simulation) Rewind(seq uint16) {
+  frames := int(s.seq - seq)
   s.controlledBodies.Range(func(key, value interface{}) bool {
     b := value.(*ControlledBody)
-    b.Rewind(seq)
+    b.Rewind(frames)
     return true
   })
+  allBodiesLen := len(s.allBodies)
+  for i := 0; i < allBodiesLen; i++ {
+    s.allBodies[i].Rewind(frames)
+  }
   // TODO: bodies
 }
 
@@ -187,34 +192,30 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 // TODO: handle bodies
 // - size               | uint16 |
 // - seq                | uint16 |
-// ControlledBody count | byte
-// ControlledBody list  | ------
-//   - id               | uint16 |
-//   - angle            | uint16 |
-//   - angle delta      | uint16 |
-//   - position X       | int32  |
-//   - position Y       | int32  |
-//   - velocity X       | int32  |--- 31
-//   - velocity Y       | int32  |
-//   - delta velocity X | int32  |
-//   - delta velocity Y | int32  |
+// Players count        | byte   |
+// Players list           ------
+//   - body id          | uint16 |
 //   - input count      | byte   |
-//   Input list         | -----
-//     - input          | byte
+//   - input            | byte   |
 //     ...
 // ...
-// Body count           | uint16
-// Body list            | -----
+// Body count           | uint16 |
+// Body list              -----
 //   - id               | uint16 |
+//   - angle            | uint16 |
+//   - delta angle      | uint16 |
 //   - position X       | int32  |
 //   - position Y       | int32  |
-//   - velocity X       | int32  |--- 26
+//   - velocity X       | int32  |
 //   - velocity Y       | int32  |
 //   - delta velocity X | int32  |
 //   - delta velocity Y | int32  |
 // ...
+// 5 + 1 + (players * (3 + inputCount)) + 2 + (30*bodies)
 func (s *Simulation) SerializeState(data []byte, head int) int {
   dataSizeIdx := head
+  head += 2
+  binary.LittleEndian.PutUint16(data[head:head+2], s.seq)
   head += 2
   cbCountIdx := head
   head += 1
@@ -222,17 +223,21 @@ func (s *Simulation) SerializeState(data []byte, head int) int {
   s.controlledBodies.Range(func(key, value interface{}) bool {
     binary.LittleEndian.PutUint16(data[head:head+2], key.(uint16))
     head += 2
-    b := value.(*ControlledBody)
-    head = b.SerializeState(data, head)
+    cb := value.(*ControlledBody)
+    head = cb.SerializeState(data, head)
     cbCount++
     return true
   })
   data[cbCountIdx] = byte(cbCount)
 
   // TODO: dynamic bodies.
-  data[head] = byte(0)
-  head++
-  binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx + 2))
+  bodyCount := len(s.allBodies)
+  binary.LittleEndian.PutUint16(data[head:head+2], uint16(bodyCount))
+  head += 2
+  for i := 0; i < bodyCount; i++ {
+    head = s.allBodies[i].SerializeState(data, head)
+  }
+  binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx))
 
   return head
 }

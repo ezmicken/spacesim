@@ -18,6 +18,7 @@ func TestSerializeState(t *testing.T) {
 
   for i := 0; i < 100; i++ {
     cb.PushInput(uint16(i + 12), byte(4))
+    sim.AdvanceBody(id, uint16(i))
     sim.AdvanceControlledBody(id, uint16(i))
     sim.Advance(i)
   }
@@ -25,9 +26,12 @@ func TestSerializeState(t *testing.T) {
   data := make([]byte, 1024)
   head := sim.SerializeState(data, 0)
 
-  // expect 47 bytes of data
-  if head != 47 {
-    t.Logf("head was not 47, it was %v", head)
+  // 12 inputs
+  // 1 player
+  // 1 body
+  // expect 53 bytes of data
+  if head != 52 {
+    t.Logf("head was not 52, it was %v", head)
     t.Fail()
   }
 }
@@ -57,6 +61,8 @@ func TestIntegration(t *testing.T) {
   for i := 0; i < 100; i++ {
     cb.PushInput(uint16(i + 12), byte(4))
     cb2.PushInput(uint16(i + 12), byte(2))
+    sim.AdvanceBody(id, uint16(i))
+    sim.AdvanceBody(id2, uint16(i))
     sim.AdvanceControlledBody(id, uint16(i))
     sim.AdvanceControlledBody(id2, uint16(i))
     sim.Advance(i)
@@ -67,8 +73,8 @@ func TestIntegration(t *testing.T) {
   head := sim.SerializeState(data, 0)
 
   // expect 90 bytes of data
-  if head != 90 {
-    t.Logf("head was not 90, it was %v", head)
+  if head != 97 {
+    t.Logf("head was not 97, it was %v", head)
     t.Fail()
   }
 
@@ -81,14 +87,16 @@ func TestIntegration(t *testing.T) {
   sim.OverwriteState(ht.Seq, id2, uint16(0), uint16(0), int32(0), int32(0), int32(0), int32(0), int32(0), int32(0))
 
   for i := int(ht.Seq + 1); i < 101; i++ {
+    sim.AdvanceBody(id, uint16(i))
+    sim.AdvanceBody(id2, uint16(i))
     sim.AdvanceControlledBody(id, uint16(i))
     sim.AdvanceControlledBody(id2, uint16(i))
     sim.Advance(i)
   }
 
   // Get the next state
-  cb1state := sim.PeekState(id)
-  cb2state := sim.PeekState(id2)
+  cb1state := cb.GetBody().GetState()
+  cb2state := cb2.GetBody().GetState()
 
   // Expect to have rewound to the correct seq
   if cb1state.Seq != ht.Seq + 100 {

@@ -1,7 +1,7 @@
 package spacesim
 
 import(
-  "encoding/binary"
+  //"encoding/binary"
   "log"
 )
 
@@ -64,18 +64,10 @@ func (sb *StateBuffer) PushInput(seq uint16, data byte) {
   sb.future[idx] = in
 }
 
-func (sb *StateBuffer) Rewind(seq uint16) {
-  if seqGreaterThan(int(seq), sb.currentSeq) {
-    log.Printf("Cannot rewind to the future.")
-    return
-  }
-  if int(seq) == sb.currentSeq  {
-    return
-  }
-
-  sb.futureHead = sb.wrap(sb.futureHead - (sb.currentSeq - int(seq)))
-  sb.pastHead = sb.wrap(sb.pastHead - (int(sb.past[sb.pastHead].Seq) - int(seq)) - 1)
-  sb.currentSeq = int(seq)
+func (sb *StateBuffer) Rewind(frames int) {
+  sb.futureHead = sb.wrap(sb.futureHead - frames)
+  //sb.pastHead = sb.wrap(sb.pastHead - (int(sb.past[sb.pastHead].Seq) - int(seq)) - 1)
+  sb.currentSeq -= frames
 }
 
 func (sb *StateBuffer) ClearInput() {
@@ -133,33 +125,14 @@ func (sb *StateBuffer) GetCurrentSeq() uint16 {
 }
 
 func (sb *StateBuffer) Serialize(data []byte, head int) int {
-  ht := sb.past[sb.pastHead]
-  binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.Angle))
-  head += 2
-  binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.AngleDelta))
-  head += 2
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Position.X.N))
-  head += 4
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Position.Y.N))
-  head += 4
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Velocity.X.N))
-  head += 4
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.Velocity.Y.N))
-  head += 4
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.VelocityDelta.X.N))
-  head += 4
-  binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.VelocityDelta.Y.N))
-  head += 4
-
   // make space for input count
   inputCountIdx := head
   head += 1
 
-  seq := int(ht.Seq)
   i := sb.futureHead
   count := 0
   for {
-    if sb.future[i].Seq != seq + count + 1 {
+    if sb.future[i].Seq != sb.currentSeq + count {
       break
     }
     data[head] = sb.future[i].Data
@@ -167,7 +140,6 @@ func (sb *StateBuffer) Serialize(data []byte, head int) int {
     count++
     i = sb.wrap(i + 1)
   }
-
   data[inputCountIdx] = byte(count)
   return head
 }

@@ -101,25 +101,22 @@ func (cb *ControlledBody) InputToState(ht HistoricalTransform, moveshoot byte) H
 }
 
 func (cb *ControlledBody) Advance(seq uint16) {
-  // Set the position based on last frame's state
-  ht := cb.body.Move(seq)
-
   // get input from buffer
   input := cb.stateBuffer.GetNextInput()
+
+  // get the current state from the body
+  ht := cb.body.GetState()
 
   if input.Seq != ((int)(ht.Seq)) {
     log.Printf("%v %v", input.Seq, ht.Seq)
     panic("input seq did not match")
   }
 
-  // apply input to body
+  // apply input to the state
   ht = cb.InputToState(ht, input.Data)
 
-  // update collider based on new state and detect collision
-  ht = cb.body.Collide(ht)
-
-  cb.body.Commit(ht)
-  cb.stateBuffer.PushState(ht)
+  // put the state back
+  cb.body.PutState(ht)
 }
 
 func (cb *ControlledBody) GetAngle(seq uint16) int32 {
@@ -159,8 +156,8 @@ func (cb *ControlledBody) PeekState() HistoricalTransform {
   return cb.stateBuffer.PeekState()
 }
 
-func (cb *ControlledBody) Rewind(seq uint16) {
-  cb.stateBuffer.Rewind(seq)
+func (cb *ControlledBody) Rewind(frames int) {
+  cb.stateBuffer.Rewind(frames)
 }
 
 func (cb *ControlledBody) ClearInput() {
