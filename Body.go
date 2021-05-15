@@ -56,7 +56,7 @@ type Body struct {
 }
 
 var historyLength int = 1024
-var movementLength int = 32
+var movementLength = 32
 
 func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   var b Body
@@ -188,6 +188,14 @@ func (b *Body) Commit(ht HistoricalTransform) {
   b.history[b.historyIdx] = ht
 }
 
+func (b *Body) GetState() HistoricalTransform {
+  return b.history[b.historyIdx]
+}
+
+func (b *Body) PutState(ht HistoricalTransform) {
+  b.history[b.historyIdx] = ht
+}
+
 func (b *Body) AddBlock(x, y int32) {
   fixedX := fixpoint.Q16FromInt32(x).Mul(b.blockSize)
   fixedY := fixpoint.Q16FromInt32(y).Mul(b.blockSize)
@@ -205,6 +213,8 @@ func (b *Body) Rewind(frames int) {
 }
 
 func (b *Body) SerializeState(data []byte, head int) int {
+  binary.LittleEndian.PutUint16(data[head:head+2], b.info.Id)
+  head += 2
   ht := b.history[b.historyIdx]
   binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.Angle))
   head += 2
