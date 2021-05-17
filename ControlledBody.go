@@ -24,9 +24,9 @@ var maxBlocks int = 256
 // instantiation
 ///////////////////////
 
-func NewControlledBody(r int32, t, s, blockScale fixpoint.Q16, bodyInfo BodyInfo) (*ControlledBody) {
+func NewControlledBody(r int32, t, s, blockScale fixpoint.Q16, body *Body) (*ControlledBody) {
   var cbod ControlledBody
-  cbod.body = NewBody(bodyInfo, blockScale)
+  cbod.body = body
   cbod.stateBuffer = NewStateBuffer(256)
   cbod.rotationSpeed = r
   cbod.thrust = t
@@ -34,13 +34,11 @@ func NewControlledBody(r int32, t, s, blockScale fixpoint.Q16, bodyInfo BodyInfo
   cbod.sqrMaxSpeed = s.Mul(s)
   cbod.lastInputSeq = 0
 
-  return &cbod
-}
+  ht := body.GetState()
+  cbod.stateBuffer.Initialize(ht)
+  cbod.inputSeq = ht.Seq
 
-func (cb *ControlledBody) Initialize(ht HistoricalTransform) {
-  cb.body.Initialize(ht)
-  cb.stateBuffer.Initialize(ht)
-  cb.inputSeq = ht.Seq
+  return &cbod
 }
 
 // Reliable ordered UDP ensures that input is pushed in order.

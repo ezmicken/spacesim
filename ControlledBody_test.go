@@ -6,14 +6,16 @@ import(
 )
 
 func TestAddBlock(t *testing.T) {
-  cb := NewControlledBody(1, fixpoint.ZeroQ16, twenty, thirtyTwo, testControlledBodyInfo)
+  b := NewBody(testControlledBodyInfo, thirtyTwo)
+  cb := NewControlledBody(1, fixpoint.ZeroQ16, twenty, thirtyTwo, b)
   for i := int32(0); i < 300; i++ {
     cb.AddBlock(i, i)
   }
 }
 
 func TestAdvance(t *testing.T) {
-  cb := NewControlledBody(9, fixpoint.Q16FromFloat(0.36), twenty, scale, testControlledBodyInfo)
+  b := NewBody(testControlledBodyInfo, thirtyTwo)
+  cb := NewControlledBody(9, fixpoint.Q16FromFloat(0.36), twenty, scale, b)
 
   var ht HistoricalTransform
   ht.Seq = uint16(0)
@@ -23,7 +25,7 @@ func TestAdvance(t *testing.T) {
   ht.Velocity = fixpoint.ZeroVec3Q16
   ht.VelocityDelta = fixpoint.ZeroVec3Q16
 
-  cb.Initialize(ht)
+  b.Initialize(ht)
 
   testSeq := uint16(12)
   for i := uint16(0); i < 640; i++ {

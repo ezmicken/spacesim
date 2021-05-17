@@ -13,7 +13,8 @@ func TestSerializeState(t *testing.T) {
     t.Fail()
   }
 
-  sim.AddControlledBody(id, int32(1234), int32(4321), testControlledBodyInfo)
+  sim.AddBody(id, 1234.0, 1234.0, testControlledBodyInfo)
+  sim.ControlBody(id, int32(1), 1.0, 1.0)
   cb := sim.GetControlledBody(id)
 
   for i := 0; i < 100; i++ {
@@ -29,9 +30,9 @@ func TestSerializeState(t *testing.T) {
   // 12 inputs
   // 1 player
   // 1 body
-  // expect 53 bytes of data
-  if head != 52 {
-    t.Logf("head was not 52, it was %v", head)
+  // expect 51 bytes of data
+  if head != 50 {
+    t.Logf("head was not 50, it was %v", head)
     t.Fail()
   }
 }
@@ -52,8 +53,12 @@ func TestIntegration(t *testing.T) {
   }
 
   // Add two bodies
-  sim.AddControlledBody(id, int32(1234), int32(4321), testControlledBodyInfo)
-  sim.AddControlledBody(id2, int32(4321), int32(1234), testControlledBodyInfo)
+  testControlledBodyInfo2 := testControlledBodyInfo
+  testControlledBodyInfo2.Id = id2
+  sim.AddBody(id, 1234.0, 1234.0, testControlledBodyInfo)
+  sim.AddBody(id2, 1234.0, 1234.0, testControlledBodyInfo2)
+  sim.ControlBody(id, int32(1), 1.0, 1.0)
+  sim.ControlBody(id2, int32(1), 1.0, 1.0)
   cb := sim.GetControlledBody(id)
   cb2 := sim.GetControlledBody(id2)
 
@@ -73,8 +78,8 @@ func TestIntegration(t *testing.T) {
   head := sim.SerializeState(data, 0)
 
   // expect 90 bytes of data
-  if head != 97 {
-    t.Logf("head was not 97, it was %v", head)
+  if head != 95 {
+    t.Logf("head was not 95, it was %v", head)
     t.Fail()
   }
 

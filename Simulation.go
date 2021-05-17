@@ -57,24 +57,14 @@ func (s *Simulation) GetBody(id uint16) *Body {
   }
 }
 
-func (s *Simulation) AddControlledBody(id uint16, x, y int32, bodyInfo BodyInfo) {
-  cb := NewControlledBody(rotationSpeed, thrust, maxSpeed, s.scale, bodyInfo)
-  s.allBodies = append(s.allBodies, cb.GetBody())
-  s.controlledBodies.Store(id, cb)
-  s.bodiesById.Store(id, cb.GetBody())
-
-  xPos := fixpoint.Q16FromInt32(x).Mul(s.scale).Add(s.halfScale)
-  yPos := fixpoint.Q16FromInt32(y).Mul(s.scale).Add(s.halfScale)
-
-  var ht HistoricalTransform
-  ht.Seq = s.seq
-  ht.Angle = 0
-  ht.AngleDelta = 0
-  ht.Position = fixpoint.Vec3Q16{xPos, yPos, fixpoint.ZeroQ16}
-  ht.Velocity = fixpoint.ZeroVec3Q16
-  ht.VelocityDelta = fixpoint.ZeroVec3Q16
-
-  cb.Initialize(ht)
+func (s *Simulation) ControlBody(id uint16, rotationSpeed int32, thrust, maxSpeed float32) {
+  b, ok := s.bodiesById.Load(id)
+  if ok && b != nil {
+    thrustQ16 := fixpoint.Q16FromFloat(thrust)
+    maxSpeedQ16 := fixpoint.Q16FromFloat(maxSpeed)
+    cb := NewControlledBody(rotationSpeed, thrustQ16, maxSpeedQ16, s.scale, b.(*Body))
+    s.controlledBodies.Store(id, cb)
+  }
 }
 
 func (s *Simulation) RemoveControlledBody(id uint16) {
@@ -191,7 +181,6 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 
 // TODO: handle bodies
 // - size               | uint16 |
-// - seq                | uint16 |
 // Players count        | byte   |
 // Players list           ------
 //   - body id          | uint16 |
@@ -215,8 +204,6 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 func (s *Simulation) SerializeState(data []byte, head int) int {
   dataSizeIdx := head
   head += 2
-  binary.LittleEndian.PutUint16(data[head:head+2], s.seq)
-  head += 2
   cbCountIdx := head
   head += 1
   cbCount := 0
@@ -230,7 +217,6 @@ func (s *Simulation) SerializeState(data []byte, head int) int {
   })
   data[cbCountIdx] = byte(cbCount)
 
-  // TODO: dynamic bodies.
   bodyCount := len(s.allBodies)
   binary.LittleEndian.PutUint16(data[head:head+2], uint16(bodyCount))
   head += 2
