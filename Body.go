@@ -9,6 +9,7 @@ import(
 // Information about the body.
 type BodyInfo struct {
   Id                uint16
+  Owner             uint16
   Size              int32
   Proximity         int32
   Lifetime          int32
