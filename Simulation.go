@@ -181,13 +181,6 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 
 // TODO: handle bodies
 // - size               | uint16 |
-// Players count        | byte   |
-// Players list           ------
-//   - body id          | uint16 |
-//   - input count      | byte   |
-//   - input            | byte   |
-//     ...
-// ...
 // Body count           | uint16 |
 // Body list              -----
 //   - id               | uint16 |
@@ -199,11 +192,23 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 //   - velocity Y       | int32  |
 //   - delta velocity X | int32  |
 //   - delta velocity Y | int32  |
-// ...
+//   ...
+// Players count        | byte   |
+// Players list           ------
+//   - body id          | uint16 |
+//   - input count      | byte   |
+//   - input            | byte   |
+//   ...
 // 5 + 1 + (players * (3 + inputCount)) + 2 + (30*bodies)
 func (s *Simulation) SerializeState(data []byte, head int) int {
   dataSizeIdx := head
   head += 2
+  bodyCount := len(s.allBodies)
+  binary.LittleEndian.PutUint16(data[head:head+2], uint16(bodyCount))
+  head += 2
+  for i := 0; i < bodyCount; i++ {
+    head = s.allBodies[i].SerializeState(data, head)
+  }
   cbCountIdx := head
   head += 1
   cbCount := 0
@@ -217,12 +222,6 @@ func (s *Simulation) SerializeState(data []byte, head int) int {
   })
   data[cbCountIdx] = byte(cbCount)
 
-  bodyCount := len(s.allBodies)
-  binary.LittleEndian.PutUint16(data[head:head+2], uint16(bodyCount))
-  head += 2
-  for i := 0; i < bodyCount; i++ {
-    head = s.allBodies[i].SerializeState(data, head)
-  }
   binary.LittleEndian.PutUint16(data[dataSizeIdx:dataSizeIdx+2], uint16(head - dataSizeIdx))
 
   return head
