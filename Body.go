@@ -18,6 +18,25 @@ type BodyInfo struct {
   VelocityY         float32
 }
 
+// Complete information about a body
+// that has been serialized.
+// results in a BodyInfo and HistoricalTransform.
+type SerializedBody struct {
+  Id                uint16
+  Owner             uint16
+  Size              int32
+  Proximity         int32
+  BounceCoefficient int32
+  Angle             uint16
+  AngleDelta        uint16
+  PositionX         int32
+  PositionY         int32
+  VelocityX         int32
+  VelocityY         int32
+  DeltaVelocityX    int32
+  DeltaVelocityY    int32
+}
+
 // Describes a movement over the smallest amount of time.
 type Movement struct {
   PositionX float32
@@ -82,6 +101,31 @@ func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   b.movementTail = 0
 
   return &b
+}
+
+func NewBodyFromSerialized(sb SerializedBody, blockSize fixpoint.Q16) *Body {
+  var bi BodyInfo
+  bi.Id = sb.Id
+  bi.Owner = sb.Owner
+  bi.Size = sb.Size
+  bi.Proximity = sb.Proximity
+  // TODO: Lifetime, life remaining
+  bi.BounceCoefficient = fixpoint.Q16{sb.BounceCoefficient}.Float()
+  bi.VelocityX = fixpoint.Q16{sb.VelocityX}.Float()
+  bi.VelocityY = fixpoint.Q16{sb.VelocityY}.Float()
+
+  body := NewBody(bi, blockSize)
+
+  var ht HistoricalTransform
+  ht.Seq = 0
+  ht.Angle = int32(sb.Angle)
+  ht.AngleDelta = int32(sb.AngleDelta)
+  ht.Position = fixpoint.Vec3Q16{fixpoint.Q16{sb.PositionX}, fixpoint.Q16{sb.PositionY}, fixpoint.ZeroQ16}
+  ht.Velocity = fixpoint.Vec3Q16{fixpoint.Q16{sb.VelocityX}, fixpoint.Q16{sb.VelocityY}, fixpoint.ZeroQ16}
+  ht.VelocityDelta = fixpoint.Vec3Q16{fixpoint.Q16{sb.DeltaVelocityX}, fixpoint.Q16{sb.DeltaVelocityY}, fixpoint.ZeroQ16}
+  body.Initialize(ht)
+
+  return body
 }
 
 func (b *Body) Initialize(ht HistoricalTransform) {

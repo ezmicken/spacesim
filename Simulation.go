@@ -97,6 +97,12 @@ func (s *Simulation) AddBody(id uint16, x, y float32, bodyInfo BodyInfo) {
   body.Initialize(ht)
 }
 
+func (s *Simulation) AddSerializedBody(sb SerializedBody) {
+  body := NewBodyFromSerialized(sb, s.scale)
+  s.allBodies = append(s.allBodies, body)
+  s.bodiesById.Store(sb.Id, body)
+}
+
 func (s *Simulation) RemoveBody(id uint16) {
   body, ok := s.bodiesById.Load(id)
   if ok && body != nil {
@@ -187,15 +193,15 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 //   - owner            | uint16 |
 //   - size             | byte   |
 //   - proximity        | byte   |
-//   - bounceCoeff      | int32  | (float)
+//   - bounceCoeff      | int32  | (fixpoint float)
 //   - angle            | uint16 |
 //   - delta angle      | uint16 |
-//   - position X       | int32  |
-//   - position Y       | int32  |
-//   - velocity X       | int32  |
-//   - velocity Y       | int32  |
-//   - delta velocity X | int32  |
-//   - delta velocity Y | int32  |
+//   - position X       | int32  | (fixpoint float)
+//   - position Y       | int32  | (fixpoint float)
+//   - velocity X       | int32  | (fixpoint float)
+//   - velocity Y       | int32  | (fixpoint float)
+//   - delta velocity X | int32  | (fixpoint float)
+//   - delta velocity Y | int32  | (fixpoint float)
 //   ...
 // Players count        | byte   |
 // Players list           ------
