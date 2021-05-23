@@ -216,6 +216,14 @@ func (b *Body) Rewind(frames int) {
 func (b *Body) SerializeState(data []byte, head int) int {
   binary.LittleEndian.PutUint16(data[head:head+2], b.info.Id)
   head += 2
+  binary.LittleEndian.PutUint16(data[head:head+2], b.info.Owner)
+  head += 2
+  data[head] = byte(b.info.Size)
+  head++
+  data[head] = byte(b.info.Proximity)
+  head++
+  binary.LittleEndian.PutUint32(data[head:head+4], uint32(b.bounceCoefficient.N))
+  head += 4
   ht := b.history[b.historyIdx]
   binary.LittleEndian.PutUint16(data[head:head+2], uint16(ht.Angle))
   head += 2

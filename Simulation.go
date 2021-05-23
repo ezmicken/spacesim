@@ -184,6 +184,10 @@ func (s *Simulation) PeekState(id uint16) HistoricalTransform {
 // Body count           | uint16 |
 // Body list              -----
 //   - id               | uint16 |
+//   - owner            | uint16 |
+//   - size             | byte   |
+//   - proximity        | byte   |
+//   - bounceCoeff      | int32  | (float)
 //   - angle            | uint16 |
 //   - delta angle      | uint16 |
 //   - position X       | int32  |
