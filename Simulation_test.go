@@ -30,9 +30,9 @@ func TestSerializeState(t *testing.T) {
   // 12 inputs
   // 1 player
   // 1 body
-  // expect 59 bytes of data
-  if head != 58 {
-    t.Logf("head was not 50, it was %v", head)
+  // expect 60 bytes of data
+  if head != 59 {
+    t.Logf("head was not 59, it was %v", head)
     t.Fail()
   }
 }
@@ -77,9 +77,9 @@ func TestIntegration(t *testing.T) {
   data := make([]byte, 1024)
   head := sim.SerializeState(data, 0)
 
-  // expect 112 bytes of data
-  if head != 111 {
-    t.Logf("head was not 111, it was %v", head)
+  // expect 114 bytes of data
+  if head != 113 {
+    t.Logf("head was not 113, it was %v", head)
     t.Fail()
   }
 

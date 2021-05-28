@@ -10,6 +10,7 @@ import(
 type BodyInfo struct {
   Id                uint16
   Owner             uint16
+  BodyType          int32
   Size              int32
   Proximity         int32
   Lifetime          int32
@@ -24,6 +25,7 @@ type BodyInfo struct {
 type SerializedBody struct {
   Id                uint16
   Owner             uint16
+  BodyType          int32
   Size              int32
   Proximity         int32
   BounceCoefficient int32
@@ -262,6 +264,8 @@ func (b *Body) SerializeState(data []byte, head int) int {
   head += 2
   binary.LittleEndian.PutUint16(data[head:head+2], b.info.Owner)
   head += 2
+  data[head] = byte(b.info.BodyType)
+  head++
   data[head] = byte(b.info.Size)
   head++
   data[head] = byte(b.info.Proximity)
