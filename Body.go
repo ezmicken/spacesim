@@ -37,6 +37,8 @@ type SerializedBody struct {
   VelocityY         int32
   DeltaVelocityX    int32
   DeltaVelocityY    int32
+  Bounces           byte
+  FramesAlive       uint16
 }
 
 // Describes a movement over the smallest amount of time.
@@ -75,6 +77,9 @@ type Body struct {
 
   firstFrame        bool
   dead              bool
+
+  framesAlive       int
+  bounces           int
 }
 
 var historyLength int = 1024
@@ -101,6 +106,8 @@ func NewBody(bodyInfo BodyInfo, blockSize fixpoint.Q16) *Body {
   b.movements = make([]Movement, movementLength)
   b.movementHead = 0
   b.movementTail = 0
+  b.framesAlive = 0
+  b.bounces = 0
 
   return &b
 }
@@ -149,6 +156,7 @@ func (b *Body) Advance(seq uint16) {
     ht = b.Collide(ht)
   }
 
+  b.framesAlive++
   b.Commit(ht)
 }
 
@@ -185,6 +193,7 @@ func (b *Body) Collide(ht HistoricalTransform) HistoricalTransform {
   } else {
     var accumulatedTime fixpoint.Q16 = fixpoint.ZeroQ16
     for cc := 1; remainingTime.N > fixpoint.ZeroQ16.N && cc <= 4; cc++ {
+      b.bounces++
       pos = pos.Add(vel.Mul(collision.Time))
 
       // deflect unless slow enough to stop
@@ -289,6 +298,10 @@ func (b *Body) SerializeState(data []byte, head int) int {
   head += 4
   binary.LittleEndian.PutUint32(data[head:head+4], uint32(ht.VelocityDelta.Y.N))
   head += 4
+  binary.LittleEndian.PutUint16(data[head:head+2], uint16(b.framesAlive))
+  head += 2
+  data[head] = byte(b.bounces)
+  head++
   return head
 }
 
