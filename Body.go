@@ -13,7 +13,6 @@ type BodyInfo struct {
   BodyType          int32
   Size              int32
   Proximity         int32
-  Lifetime          int32
   BounceCoefficient float32
   VelocityX         float32
   VelocityY         float32
@@ -118,12 +117,12 @@ func NewBodyFromSerialized(sb SerializedBody, blockSize fixpoint.Q16) *Body {
   bi.Owner = sb.Owner
   bi.Size = sb.Size
   bi.Proximity = sb.Proximity
-  // TODO: Lifetime, life remaining
   bi.BounceCoefficient = fixpoint.Q16{sb.BounceCoefficient}.Float()
   bi.VelocityX = fixpoint.Q16{sb.VelocityX}.Float()
   bi.VelocityY = fixpoint.Q16{sb.VelocityY}.Float()
 
   body := NewBody(bi, blockSize)
+  body.framesAlive = int(sb.FramesAlive)
 
   var ht HistoricalTransform
   ht.Seq = 0
